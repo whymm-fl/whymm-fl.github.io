@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://whymm.com.cn/sitemap.xml
