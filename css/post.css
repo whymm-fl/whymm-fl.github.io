@@ -41,6 +41,8 @@
   color: var(--muted);
 }
 .post-meta .chip { margin-left: 0; }
+.post-meta .post-author { color: var(--accent); }
+.post-meta .post-author svg { opacity: .8; }
 
 /* ---------- 2. Layout ---------- */
 .post-layout {
