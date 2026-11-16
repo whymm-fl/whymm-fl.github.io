@@ -899,3 +899,31 @@ html[data-theme="light"] .theme-toggle .i-moon { display: none; }
   .empty-state { padding: 34px 18px 32px; }
   .empty-title { font-size: 1.08rem; }
 }
+
+/* ---------- comments ---------- */
+.comments {
+  margin-top: 58px;
+  padding-top: 34px;
+  border-top: 1px solid var(--border);
+}
+.comments-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.comments-title {
+  margin: 0;
+  font-size: 1.22rem;
+  letter-spacing: -.01em;
+}
+.comments-title .t-prompt { color: var(--accent); font-family: var(--font-mono); margin-right: 8px; }
+.comments-sub { color: var(--muted); font-size: .82rem; }
+.giscus-wrap { min-height: 120px; }
+.giscus-wrap .giscus,
+.giscus-wrap .giscus-frame { width: 100% !important; }
+.footer-stats { color: var(--muted); }
+@media (max-width: 680px) {
+  .comments { margin-top: 40px; padding-top: 26px; }
+  .comments-head { flex-direction: column; gap: 6px; }
+}
