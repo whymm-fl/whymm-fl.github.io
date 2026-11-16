@@ -12,7 +12,7 @@
     <![CDATA[CTF Writeups & 安全笔记]]>
   </subtitle>
   <title>whymm</title>
-  <updated>2026-11-16T12:05:50.904Z</updated>
+  <updated>2026-11-16T13:11:21.042Z</updated>
   <entry>
     <author>
       <name>whymm</name>
@@ -31,6 +31,6 @@
       <![CDATA[<p>这一周基本都泡在 SQL 注入里：从最基础的登录绕过，到数字型注入用 UNION 拖库，再到关键词被 WAF 全删之后怎么绕，最后用布尔盲注一位一位把 flag 猜出来。这篇周报按「原理 → 题目 → 绕过 →]]>
     </summary>
     <title>2026 级第一周周报：SQL 注入与几种 CTF 题型</title>
-    <updated>2026-11-16T12:05:50.904Z</updated>
+    <updated>2026-11-16T13:11:21.042Z</updated>
   </entry>
 </feed>
