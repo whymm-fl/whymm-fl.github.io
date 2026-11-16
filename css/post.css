@@ -181,8 +181,9 @@
   max-width: 100%;
   margin: 1.6em auto;
   border-radius: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   background: var(--surface);
+  box-shadow: 0 26px 50px -34px rgba(0, 0, 0, .95);
 }
 .post-content img.is-zoomable { cursor: zoom-in; }
 
