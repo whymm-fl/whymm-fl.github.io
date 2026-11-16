@@ -919,7 +919,7 @@ html[data-theme="light"] .theme-toggle .i-moon { display: none; }
 }
 .comments-title .t-prompt { color: var(--accent); font-family: var(--font-mono); margin-right: 8px; }
 .comments-sub { color: var(--muted); font-size: .82rem; }
-.giscus-wrap { min-height: 120px; }
+.giscus-wrap { min-height: 340px; }
 .giscus-wrap .giscus,
 .giscus-wrap .giscus-frame { width: 100% !important; }
 .footer-stats { color: var(--muted); }
