@@ -132,18 +132,19 @@
 
 <section class="quote-band" aria-label="名言与小知识">
   <div class="wrap">
-    <div class="quote-card">
+    <div class="quote-card" id="quoteCard">
       <div class="quote-mark" aria-hidden="true">&ldquo;</div>
       
-      <p class="quote-text">纸上得来终觉浅，绝知此事要躬行。</p>
-      <p class="quote-author">&mdash; 陆游</p>
+      <p class="quote-text" id="quoteText">纸上得来终觉浅，绝知此事要躬行。</p>
+      <p class="quote-author" id="quoteAuthor">&mdash; 陆游</p>
       
       
-      <p class="quote-tip"><span class="quote-tip-label">// 小知识</span><code>strings -n 8 ./chall | less</code> 先抓二进制里的可见字符串，比手动翻快得多。</p>
+      <p class="quote-tip"><span class="quote-tip-label">// 小知识</span><span id="quoteTip"><code>strings -n 8 ./chall | less</code> 先抓二进制里的可见字符串，比手动翻快得多。</span></p>
       
     </div>
   </div>
 </section>
+<script type="application/json" id="quoteData">{"quotes":[{"text":"Talk is cheap. Show me the code.","author":"Linus Torvalds"},{"text":"Simplicity is prerequisite for reliability.","author":"Edsger W. Dijkstra"},{"text":"Premature optimization is the root of all evil.","author":"Donald Knuth"},{"text":"Programs must be written for people to read, and only incidentally for machines to execute.","author":"Harold Abelson"},{"text":"Security is a process, not a product.","author":"Bruce Schneier"},{"text":"Debugging is twice as hard as writing the code in the first place.","author":"Brian W. Kernighan"},{"text":"Any sufficiently advanced technology is indistinguishable from magic.","author":"Arthur C. Clarke"},{"text":"Make it work, make it right, make it fast.","author":"Kent Beck"},{"text":"纸上得来终觉浅，绝知此事要躬行。","author":"陆游"},{"text":"Stay hungry, stay foolish.","author":"Steve Jobs"}],"tips":["\u003ccode\u003ecurl -s -o /dev/null -w \"%{http_code}\" \u0026lt;url\u0026gt;\u003c/code\u003e 只看状态码，批量探活很省事。","\u003ccode\u003epython3 -m http.server 8000\u003c/code\u003e 一句话起个文件服务，传 payload 最方便。","\u003ccode\u003estrings -n 8 ./chall | less\u003c/code\u003e 先抓二进制里的可见字符串，比手动翻快得多。","\u003ccode\u003ebinwalk -e firmware.bin\u003c/code\u003e 解固件，\u003ccode\u003eexiftool pic.jpg\u003c/code\u003e 看图片元数据。","\u003ccode\u003etcpdump -i any -w out.pcap port 80\u003c/code\u003e 抓包，Wireshark 里按 \u003ccode\u003ehttp.request\u003c/code\u003e 过滤。","登录框先试 \u003ccode\u003e' or 1=1-- -\u003c/code\u003e、\u003ccode\u003eadmin' -- -\u003c/code\u003e，能进就是字符型注入。","\u003ccode\u003egit log -p --all\u003c/code\u003e 能在 \u003ccode\u003e.git\u003c/code\u003e 泄露的题目里翻出被删掉的 flag。","\u003ccode\u003enc -lvnp 4444\u003c/code\u003e 起监听前，先确认目标能不能出网。","拿到 RSA 密文先看长度：e、n 大小不对劲往往就是攻击点。","\u003ccode\u003egrep -rn \"flag{\" .\u003c/code\u003e 是赛后复盘找遗漏的最快方式。"]}</script>
 
 
   <footer class="site-footer">

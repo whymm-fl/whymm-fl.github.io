@@ -201,4 +201,68 @@
       a.setAttribute('rel', 'noopener noreferrer');
     }
   });
+
+  /* ---------- 页尾名言 / 小知识：每次刷新随机换一条 ---------- */
+  (function () {
+    var dataEl = document.getElementById('quoteData');
+    var card = document.getElementById('quoteCard');
+    if (!dataEl || !card) return;
+
+    var data;
+    try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
+    if (!data || (!data.quotes.length && !data.tips.length)) return;
+
+    var textEl = document.getElementById('quoteText');
+    var authorEl = document.getElementById('quoteAuthor');
+    var tipEl = document.getElementById('quoteTip');
+
+    function pick(list, current) {
+      if (!list || !list.length) return null;
+      if (list.length === 1) return list[0];
+      var next = current;
+      for (var i = 0; i < 6 && next === current; i++) {
+        next = list[Math.floor(Math.random() * list.length)];
+      }
+      return next;
+    }
+
+    var q = data.quotes.length ? data.quotes[Math.floor(Math.random() * data.quotes.length)] : null;
+    var t = data.tips.length ? data.tips[Math.floor(Math.random() * data.tips.length)] : null;
+
+    var lastQ = '', lastT = '';
+    try {
+      lastQ = sessionStorage.getItem('whymm-quote') || '';
+      lastT = sessionStorage.getItem('whymm-tip') || '';
+    } catch (e) {}
+
+    // 抽到和首屏（或上一次）一样的就再抽，避免“刷新了却像没变”
+    var sameQuote = q && (textEl && textEl.textContent.trim() === q.text.trim() || lastQ === q.text);
+    var sameTip = t && (tipEl && tipEl.innerHTML.trim() === t.trim() || lastT === t);
+    if (q && sameQuote) q = pick(data.quotes, q.text);
+    if (t && sameTip) t = pick(data.tips, t);
+
+    try {
+      if (q) sessionStorage.setItem('whymm-quote', q.text);
+      if (t) sessionStorage.setItem('whymm-tip', t);
+    } catch (e) {}
+
+    card.classList.add('is-swapping');
+
+    window.setTimeout(function () {
+      if (q && textEl) {
+        textEl.textContent = q.text;
+        if (authorEl) {
+          if (q.author) {
+            authorEl.textContent = '\u2014 ' + q.author;
+            authorEl.hidden = false;
+          } else {
+            authorEl.textContent = '';
+            authorEl.hidden = true;
+          }
+        }
+      }
+      if (t && tipEl) tipEl.innerHTML = t;
+      card.classList.remove('is-swapping');
+    }, 180);
+  })();
 })();

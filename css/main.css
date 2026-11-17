@@ -985,3 +985,6 @@ html[data-theme="light"] .theme-toggle .i-moon { display: none; }
   .quote-card { padding: 24px 20px 20px; }
   .quote-text { font-size: .95rem; }
 }
+.quote-card { transition: opacity .18s var(--ease); }
+.quote-card.is-swapping { opacity: .25; }
+.quote-author[hidden] { display: none; }
