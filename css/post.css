@@ -102,11 +102,21 @@
 }
 
 .post-content h4 {
-  font-size: 1rem;
-  margin: 1.7em 0 .6em;
-  color: var(--text-2);
+  font-size: 1.02rem;
+  margin: 1.9em 0 .6em;
+  color: var(--text);
   font-family: var(--font-mono);
   letter-spacing: .01em;
+}
+.post-content h4::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 .55em .14em 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  vertical-align: middle;
 }
 
 .post-content .headerlink {
