@@ -927,3 +927,61 @@ html[data-theme="light"] .theme-toggle .i-moon { display: none; }
   .comments { margin-top: 40px; padding-top: 26px; }
   .comments-head { flex-direction: column; gap: 6px; }
 }
+
+/* ---------- 页尾名言 / 小知识 ---------- */
+.quote-band { padding: 0 0 54px; }
+.quote-card {
+  position: relative;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 30px 34px 24px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 62%),
+    var(--surface);
+  text-align: center;
+  overflow: hidden;
+}
+.quote-mark {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 46px;
+  line-height: .7;
+  color: var(--accent);
+  opacity: .45;
+  margin-bottom: 6px;
+}
+.quote-text {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+.quote-author {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .02em;
+  color: var(--muted);
+}
+.quote-tip {
+  margin: 20px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  line-height: 1.7;
+  text-align: left;
+  color: var(--text-2);
+}
+.quote-tip-label {
+  color: var(--accent);
+  margin-right: 10px;
+  white-space: nowrap;
+}
+.quote-tip code { font-size: .95em; }
+@media (max-width: 680px) {
+  .quote-band { padding-bottom: 40px; }
+  .quote-card { padding: 24px 20px 20px; }
+  .quote-text { font-size: .95rem; }
+}
