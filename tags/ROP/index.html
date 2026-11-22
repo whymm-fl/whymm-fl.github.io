@@ -100,7 +100,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-rop-ret2text/">pwn--rop+ret2text</a></h3>
-      <p class="post-item-excerpt">依旧是上周卡我7，8个小时的题目 首先我们要调用read函数将/bin/sh写入.bss段，而且还只能写24字节 错误示例： 1234567891011121314from pwn import *p=remote(&amp;#x27;127.0.0.1&amp;#x27;,…</p>
+      <p class="post-item-excerpt">依旧是上周卡我7，8个小时的题目 首先我们要调用 read 函数将 /bin/sh 写入 .bss 段，而且还只能写24字节 错误示例： 将 /bin/sh 写入 .bss 后不知道该如何控制返回地址 导致无法回到 take_massage 再次读取 出题人提…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -115,7 +115,7 @@
         <a class="chip" href="/tags/shellcode/">#shellcode</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">7 min</span>
+        <span class="meta-text">6 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
@@ -130,7 +130,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-fmtstr/">pwn--格式化字符串泄露</a></h3>
-      <p class="post-item-excerpt">拖进ida分析 1234567char input[256]; // [rsp+10h] [rbp-1E0h] BYREF__int64 stack_cache; // [rsp+110h] [rbp-E0h]_QWORD v2[15]; // [rsp+11…</p>
+      <p class="post-item-excerpt">拖进ida分析 从图中可以看到input的起始位置是rsp+0x10， flag被拷在v2数组的v2[7]到v2[14]中 而v2的起始位置是rsp+0x118 又QWORD（Quad Word，四字）：64 位，8 字节。（四倍的 WORD，也就是 x86_…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -149,7 +149,7 @@
         <a class="chip" href="/tags/pwntools/">#pwntools</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">16 min</span>
+        <span class="meta-text">14 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">

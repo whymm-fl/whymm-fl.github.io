@@ -100,7 +100,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-fmtstr/">pwn--格式化字符串泄露</a></h3>
-      <p class="post-item-excerpt">拖进ida分析 1234567char input[256]; // [rsp+10h] [rbp-1E0h] BYREF__int64 stack_cache; // [rsp+110h] [rbp-E0h]_QWORD v2[15]; // [rsp+11…</p>
+      <p class="post-item-excerpt">拖进ida分析 从图中可以看到input的起始位置是rsp+0x10， flag被拷在v2数组的v2[7]到v2[14]中 而v2的起始位置是rsp+0x118 又QWORD（Quad Word，四字）：64 位，8 字节。（四倍的 WORD，也就是 x86_…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -119,7 +119,7 @@
         <a class="chip" href="/tags/pwntools/">#pwntools</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">16 min</span>
+        <span class="meta-text">14 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">

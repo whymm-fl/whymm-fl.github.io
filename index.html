@@ -274,7 +274,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/22/php-unserialize-pop/">PHP 序列化与反序列化（POP 链）</a></h3>
-      <p class="post-item-excerpt">这篇文章把 PHP 序列化 &amp;#x2F; 反序列化的基础、魔术方法、POP 链构造，以及字符串逃逸的加法和减法整理成一条线，最后用两道题走一遍完整利用。所有代码都可以直接丢进 VS Code 跑。 一、PHP 基础知识PHP 简单介绍PHP（Hypertext…</p>
+      <p class="post-item-excerpt">这篇文章把 PHP 序列化 / 反序列化的基础、魔术方法、POP 链构造，以及字符串逃逸的加法和减法整理成一条线，最后用两道题走一遍完整利用。所有代码都可以直接丢进 VS Code 跑。 一、PHP 基础知识 PHP 简单介绍 PHP（Hypertext Pr…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Web/" style="--c: #ff7a45">Web</a>
@@ -287,7 +287,7 @@
         <a class="chip" href="/tags/POP%E9%93%BE/">#POP链</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">25 min</span>
+        <span class="meta-text">19 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
@@ -302,7 +302,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-tiny-xor/">pwn--tiny--XOR解码</a></h3>
-      <p class="post-item-excerpt">远程环境保证无额外参数启动./tiny，即argc==1 如果没有头绪，不妨跟着gdb完整走一遍程序 根据提示要跟着gdb跑一遍 先检查保护机制 123456789xiaowu@localhost:~/Downloads/pwn-tiny-elf$ pwn c…</p>
+      <p class="post-item-excerpt">远程环境保证无额外参数启动 ./tiny ，即 argc==1 如果没有头绪，不妨跟着gdb完整走一遍程序 根据提示要跟着gdb跑一遍 先检查保护机制 栈可执行且存在可读、可写、可执行的内存段 拖进IDA 可以知道没有什么信息 在gdb中动态调试一下 发现 得…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -321,7 +321,7 @@
         <a class="chip" href="/tags/canary/">#canary</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">19 min</span>
+        <span class="meta-text">17 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
@@ -336,7 +336,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-rop-ret2text/">pwn--rop+ret2text</a></h3>
-      <p class="post-item-excerpt">依旧是上周卡我7，8个小时的题目 首先我们要调用read函数将/bin/sh写入.bss段，而且还只能写24字节 错误示例： 1234567891011121314from pwn import *p=remote(&amp;#x27;127.0.0.1&amp;#x27;,…</p>
+      <p class="post-item-excerpt">依旧是上周卡我7，8个小时的题目 首先我们要调用 read 函数将 /bin/sh 写入 .bss 段，而且还只能写24字节 错误示例： 将 /bin/sh 写入 .bss 后不知道该如何控制返回地址 导致无法回到 take_massage 再次读取 出题人提…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -351,7 +351,7 @@
         <a class="chip" href="/tags/shellcode/">#shellcode</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">7 min</span>
+        <span class="meta-text">6 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
@@ -366,7 +366,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-fmtstr/">pwn--格式化字符串泄露</a></h3>
-      <p class="post-item-excerpt">拖进ida分析 1234567char input[256]; // [rsp+10h] [rbp-1E0h] BYREF__int64 stack_cache; // [rsp+110h] [rbp-E0h]_QWORD v2[15]; // [rsp+11…</p>
+      <p class="post-item-excerpt">拖进ida分析 从图中可以看到input的起始位置是rsp+0x10， flag被拷在v2数组的v2[7]到v2[14]中 而v2的起始位置是rsp+0x118 又QWORD（Quad Word，四字）：64 位，8 字节。（四倍的 WORD，也就是 x86_…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -385,7 +385,7 @@
         <a class="chip" href="/tags/pwntools/">#pwntools</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">16 min</span>
+        <span class="meta-text">14 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
@@ -400,7 +400,7 @@
     </div>
     <div class="post-item-main">
       <h3 class="post-item-title"><a href="/2026/11/20/pwn-int-overflow/">pwn1--整数溢出</a></h3>
-      <p class="post-item-excerpt">将附件拖入IDA并找到main函数分析伪c代码 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647int __fastcall main(i…</p>
+      <p class="post-item-excerpt">将附件拖入IDA并找到main函数分析伪c代码 由图可以看到：level=2147483640且为int型变量 int型变量最大值为2147483647 而level+=gain level += gain; 要达到整数溢出效果gain要不小于8且gain&lt;=…</p>
       <div class="post-item-meta">
         
         <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
@@ -419,7 +419,7 @@
         <a class="chip" href="/tags/ret2shellcode/">#ret2shellcode</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">34 min</span>
+        <span class="meta-text">30 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
@@ -447,7 +447,7 @@
         <a class="chip" href="/tags/CTF/">#CTF</a>
         
         <span class="meta-dot">·</span>
-        <span class="meta-text">16 min</span>
+        <span class="meta-text">15 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">
