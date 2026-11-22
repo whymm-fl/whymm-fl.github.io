@@ -2,6 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://whymm.com.cn/2026/11/16/2026-week1-report/</loc></url>
   <url><loc>https://whymm.com.cn/2026/11/22/php-unserialize-pop/</loc></url>
+  <url><loc>https://whymm.com.cn/2026/11/20/pwn-fmtstr/</loc></url>
+  <url><loc>https://whymm.com.cn/2026/11/20/pwn-rop-ret2text/</loc></url>
+  <url><loc>https://whymm.com.cn/2026/11/20/pwn-int-overflow/</loc></url>
+  <url><loc>https://whymm.com.cn/2026/11/20/pwn-tiny-xor/</loc></url>
   <url><loc>https://whymm.com.cn//404.html</loc></url>
   <url><loc>https://whymm.com.cn/about/index.html</loc></url>
   <url><loc>https://whymm.com.cn/tags/index.html</loc></url>

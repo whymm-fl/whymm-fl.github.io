@@ -97,9 +97,9 @@
         <a class="btn" href="/about/">关于我</a>
       </div>
       <div class="hero-stats">
-        <div class="stat"><b>2</b><span>篇文章</span></div>
+        <div class="stat"><b>6</b><span>篇文章</span></div>
         <div class="stat"><b>6</b><span>个方向</span></div>
-        <div class="stat"><b>6</b><span>个标签</span></div>
+        <div class="stat"><b>18</b><span>个标签</span></div>
       </div>
     </div>
 
@@ -173,14 +173,14 @@
 
       
       
-<a class="cat-card" href="/categories/" style="--c: #ff5c7a">
+<a class="cat-card" href="/categories/Pwn/" style="--c: #ff5c7a">
   <div class="cat-card-top">
     <span class="cat-icon" aria-hidden="true">
       
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9.5l2.6 2.5L7 14.5M13 14.5h4"/></svg>
       
     </span>
-    <span class="cat-count">0 篇</span>
+    <span class="cat-count">4 篇</span>
   </div>
   <h3 class="cat-name">Pwn<span class="cat-label">二进制 Pwn</span></h3>
   <p class="cat-desc">栈溢出、堆利用、格式化字符串、沙箱逃逸与内核提权</p>
@@ -288,6 +288,138 @@
         
         <span class="meta-dot">·</span>
         <span class="meta-text">25 min</span>
+      </div>
+    </div>
+    <div class="post-item-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+  </li>
+  
+  <li class="post-item">
+    <div class="post-item-date">
+      <b>11-20</b>
+      <span>2026</span>
+    </div>
+    <div class="post-item-main">
+      <h3 class="post-item-title"><a href="/2026/11/20/pwn-tiny-xor/">pwn--tiny--XOR解码</a></h3>
+      <p class="post-item-excerpt">pwn–tiny–XOR解码远程环境保证无额外参数启动./tiny，即argc==1 如果没有头绪，不妨跟着gdb完整走一遍程序 根据提示要跟着gdb跑一遍 先检查保护机制 123456789xiaowu@localhost:~/Downloads/pwn-t…</p>
+      <div class="post-item-meta">
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+        
+        <a class="chip" href="/tags/Pwn/">#Pwn</a>
+        
+        <a class="chip" href="/tags/pwntools/">#pwntools</a>
+        
+        <a class="chip" href="/tags/shellcode/">#shellcode</a>
+        
+        <a class="chip" href="/tags/XOR/">#XOR</a>
+        
+        <a class="chip" href="/tags/ret2libc/">#ret2libc</a>
+        
+        <a class="chip" href="/tags/canary/">#canary</a>
+        
+        <span class="meta-dot">·</span>
+        <span class="meta-text">19 min</span>
+      </div>
+    </div>
+    <div class="post-item-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+  </li>
+  
+  <li class="post-item">
+    <div class="post-item-date">
+      <b>11-20</b>
+      <span>2026</span>
+    </div>
+    <div class="post-item-main">
+      <h3 class="post-item-title"><a href="/2026/11/20/pwn-rop-ret2text/">pwn--rop+ret2text</a></h3>
+      <p class="post-item-excerpt">pwn–rop+ret2text依旧是上周卡我7，8个小时的题目 首先我们要调用read函数将/bin/sh写入.bss段，而且还只能写24字节 错误示例： 1234567891011121314from pwn import *p=remote(&amp;#x27;…</p>
+      <div class="post-item-meta">
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+        
+        <a class="chip" href="/tags/Pwn/">#Pwn</a>
+        
+        <a class="chip" href="/tags/ROP/">#ROP</a>
+        
+        <a class="chip" href="/tags/ret2text/">#ret2text</a>
+        
+        <a class="chip" href="/tags/shellcode/">#shellcode</a>
+        
+        <span class="meta-dot">·</span>
+        <span class="meta-text">7 min</span>
+      </div>
+    </div>
+    <div class="post-item-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+  </li>
+  
+  <li class="post-item">
+    <div class="post-item-date">
+      <b>11-20</b>
+      <span>2026</span>
+    </div>
+    <div class="post-item-main">
+      <h3 class="post-item-title"><a href="/2026/11/20/pwn-fmtstr/">pwn--格式化字符串泄露</a></h3>
+      <p class="post-item-excerpt">pwn–格式化字符串泄露拖进ida分析 1234567char input[256]; // [rsp+10h] [rbp-1E0h] BYREF__int64 stack_cache; // [rsp+110h] [rbp-E0h]_QWORD v2[15]…</p>
+      <div class="post-item-meta">
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+        
+        <a class="chip" href="/tags/Pwn/">#Pwn</a>
+        
+        <a class="chip" href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/">#格式化字符串</a>
+        
+        <a class="chip" href="/tags/ROP/">#ROP</a>
+        
+        <a class="chip" href="/tags/ret2text/">#ret2text</a>
+        
+        <a class="chip" href="/tags/OOB/">#OOB</a>
+        
+        <a class="chip" href="/tags/pwntools/">#pwntools</a>
+        
+        <span class="meta-dot">·</span>
+        <span class="meta-text">16 min</span>
+      </div>
+    </div>
+    <div class="post-item-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+  </li>
+  
+  <li class="post-item">
+    <div class="post-item-date">
+      <b>11-20</b>
+      <span>2026</span>
+    </div>
+    <div class="post-item-main">
+      <h3 class="post-item-title"><a href="/2026/11/20/pwn-int-overflow/">pwn1--整数溢出</a></h3>
+      <p class="post-item-excerpt">pwn1–整数溢出将附件拖入IDA并找到main函数分析伪c代码 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647int __fastca…</p>
+      <div class="post-item-meta">
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+        
+        <a class="chip" href="/tags/Pwn/">#Pwn</a>
+        
+        <a class="chip" href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/">#格式化字符串</a>
+        
+        <a class="chip" href="/tags/ret2text/">#ret2text</a>
+        
+        <a class="chip" href="/tags/pwntools/">#pwntools</a>
+        
+        <a class="chip" href="/tags/%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/">#整数溢出</a>
+        
+        <a class="chip" href="/tags/ret2shellcode/">#ret2shellcode</a>
+        
+        <span class="meta-dot">·</span>
+        <span class="meta-text">34 min</span>
       </div>
     </div>
     <div class="post-item-arrow" aria-hidden="true">

